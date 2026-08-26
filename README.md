@@ -105,12 +105,23 @@ Ou conecte o repositório Git direto no dashboard da Vercel. `vercel.json` já e
 | `calendarEvents` | Eventos avulsos do calendário (reuniões, gravações) — tarefas e conteúdos aparecem no calendário direto de suas próprias collections |
 | `notifications` | Reservada para notificações por usuário (schema pronto, sem UI ainda) |
 | `teams`, `projects` | Reservadas para agrupar usuários/trabalho (schema pronto, sem UI ainda) |
+| `trails` | Trilhas de treinamento da Universidade Arrow Shot |
+| `modules` | Módulos de uma trilha (`trailId`), com conteúdo em markdown, checklist e quiz |
+| `moduleProgress` | Progresso de cada funcionário por módulo (`userId` + `moduleId`, id `${userId}_${moduleId}`) |
+| `invites` | Convites de novos funcionários registrados pelo admin (a criação da conta em si ainda é manual, ver seção "Configurar o Firebase") |
 
 Todo documento relevante carrega `id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, e relacionamentos são sempre por **ID** (`clientId`, nunca `clientName`).
 
 ## Storage
 
 Estrutura de pastas: `/clients/{clientId}/{category}/{timestamp}_{fileName}`, onde `category` é `social-media`, `documents`, e (reservado para o futuro, sem mudança de regra necessária) `google-ads`, `meta-ads`, `reports`. Ver `src/services/fileService.ts` e `storage.rules`.
+
+## Universidade Arrow Shot
+
+Módulo de treinamento interno, em `/universidade`. Trilhas (`trails`) contêm módulos em ordem (`modules`, campo `order`); um funcionário só destrava o próximo módulo depois de concluir o anterior (checklist + quiz respondido). Progresso fica em `moduleProgress`. Acesso: qualquer `admin`/`manager`/`employee` vê e faz as trilhas; só `admin` acessa `/universidade/admin` para criar/editar trilhas e módulos, ver o progresso de cada funcionário e registrar convites.
+
+- Um admin recém-cadastrado (sem nenhuma trilha ainda) vê o botão "Importar trilhas iniciais" no painel admin, que cria as 4 trilhas e ~19 módulos do plano inicial com conteúdo/quiz placeholder — o conteúdo real (texto, vídeo, quiz de verdade) precisa ser escrito depois, editando cada módulo.
+- "Convidar novos funcionários" só registra a intenção do convite em `invites`; a conta em si ainda é criada manualmente no Firebase Console (Authentication → Users), como já é o processo de onboarding do resto do CRM.
 
 ## Arquitetura pensada para o futuro
 
