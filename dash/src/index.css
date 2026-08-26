@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+
+  /* Arrow Shot brand blue, anchored to the real marks used on
+     marketingparalimpeza.com.br: --blue:#004AAD (600) / --blue-bright:#4A8FE0 (400). */
+  --color-brand-50: #eef4fc;
+  --color-brand-100: #dce9f9;
+  --color-brand-200: #b9d3f3;
+  --color-brand-300: #8fb8ea;
+  --color-brand-400: #4a8fe0;
+  --color-brand-500: #1f6fce;
+  --color-brand-600: #004aad;
+  --color-brand-700: #003c8c;
+  --color-brand-800: #002f6e;
+  --color-brand-900: #002451;
+
+  /* Dark navy surfaces from the same site, used for the sidebar/login. */
+  --color-navy-950: #0a0e13;
+  --color-navy-900: #121821;
+  --color-navy-800: #1a222c;
+  --color-navy-700: #232c37;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Thin scrollbars, ClickUp-ish */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}

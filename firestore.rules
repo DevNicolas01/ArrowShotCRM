@@ -1,0 +1,203 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return isSignedIn() ? userProfile().role : null;
+    }
+
+    // Deactivated users (users/{uid}.active == false) keep a valid Firebase
+    // Auth session but lose all app-level access — the frontend signs them
+    // out on load, this is the server-side backstop for the gap before that happens.
+    function isActive() {
+      return isSignedIn() && userProfile().active == true;
+    }
+
+    function isInternal() {
+      return isActive() && role() in ['admin', 'manager', 'employee'];
+    }
+
+    function isAdminOrManager() {
+      return isActive() && role() in ['admin', 'manager'];
+    }
+
+    function isAdmin() {
+      return isActive() && role() == 'admin';
+    }
+
+    function isOwnUser(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // A "client" role user is scoped to exactly one clients/{id} document.
+    function isClientUserFor(clientId) {
+      return isActive() && role() == 'client' && clientId != null && userProfile().clientId == clientId;
+    }
+
+    // Internal staff, or a client-role user scoped to this record's clientId.
+    function canReadClientScoped(clientId) {
+      return isInternal() || isClientUserFor(clientId);
+    }
+
+    function createdBySelf() {
+      return request.resource.data.createdBy == request.auth.uid;
+    }
+
+    function updatedBySelf() {
+      return request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    // ---------- public client-approval portal ----------
+    // No login for clients yet — a content doc becomes fetchable (by exact id
+    // only, never listable/queryable) once approvalToken is set by an
+    // internal user, and a matching write is allowed to flip its status.
+    // The link itself (content id + token) is the credential, same trust
+    // model as e.g. a Stripe payment link — there's no Cloud Functions on
+    // this project's plan to validate the token server-side instead.
+    function isPublicApprovalUpdate() {
+      return resource.data.approvalToken != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'updatedBy'])
+        && request.resource.data.status in ['approved', 'production']
+        && request.resource.data.updatedBy == 'client-portal';
+    }
+
+    function isPublicApproval() {
+      return request.resource.data.createdBy == 'client-portal'
+        && request.resource.data.updatedBy == 'client-portal'
+        && request.resource.data.action in ['approved', 'change_requested']
+        && get(/databases/$(database)/documents/contents/$(request.resource.data.contentId)).data.approvalToken != null;
+    }
+
+    function isPublicApprovalNotification() {
+      return request.resource.data.type in ['content_approved', 'change_requested']
+        && request.resource.data.entityType == 'content'
+        && get(/databases/$(database)/documents/contents/$(request.resource.data.entityId)).data.approvalToken != null;
+    }
+
+    // ---------- users ----------
+    // Any signed-in user can read the team directory (needed for assignee
+    // pickers across the whole app). Writes are restricted to the user's own
+    // doc (role/active excluded — only an admin can change those) or an admin.
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwnUser(uid);
+      allow update: if isAdmin() || (isOwnUser(uid) && request.resource.data.role == resource.data.role && request.resource.data.active == resource.data.active);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- clients ----------
+    match /clients/{clientId} {
+      allow read: if isInternal() || isClientUserFor(clientId);
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isAdminOrManager();
+    }
+
+    // ---------- tasks ----------
+    // Internal-only entity — clients don't see the team's internal task board.
+    match /tasks/{taskId} {
+      allow read: if isInternal();
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isInternal();
+    }
+
+    // ---------- contents (Social Media) ----------
+    // Clients can read their own content pipeline. Anyone holding a valid
+    // approval link can also `get` (never `list`) one specific content doc,
+    // and flip its status via isPublicApprovalUpdate() above.
+    match /contents/{contentId} {
+      allow get: if canReadClientScoped(resource.data.clientId) || resource.data.approvalToken != null;
+      allow list: if canReadClientScoped(resource.data.clientId);
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if (isInternal() && updatedBySelf()) || isPublicApprovalUpdate();
+      allow delete: if isInternal();
+    }
+
+    // ---------- approvals ----------
+    match /approvals/{approvalId} {
+      allow read: if canReadClientScoped(resource.data.clientId);
+      allow create: if (isInternal() && createdBySelf() && updatedBySelf()) || isPublicApproval();
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- comments ----------
+    match /comments/{commentId} {
+      allow read: if canReadClientScoped(resource.data.clientId);
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && (isInternal() || isClientUserFor(request.resource.data.clientId));
+      allow update: if false; // comments are immutable once posted
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // ---------- files (metadata only — binaries live in Storage) ----------
+    match /files/{fileId} {
+      allow read: if canReadClientScoped(resource.data.clientId);
+      allow create: if isSignedIn()
+        && request.resource.data.uploadedBy == request.auth.uid
+        && (isInternal() || isClientUserFor(request.resource.data.clientId));
+      allow update: if false;
+      allow delete: if isInternal() || isAdmin();
+    }
+
+    // ---------- activities (append-only audit log) ----------
+    match /activities/{activityId} {
+      allow read: if canReadClientScoped(resource.data.clientId);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- calendarEvents (custom one-off events) ----------
+    match /calendarEvents/{eventId} {
+      allow read: if isInternal();
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isInternal();
+    }
+
+    // ---------- notifications ----------
+    match /notifications/{notificationId} {
+      allow read: if isOwnUser(resource.data.userId);
+      allow create: if isSignedIn() || isPublicApprovalNotification();
+      allow update: if isOwnUser(resource.data.userId);
+      allow delete: if isOwnUser(resource.data.userId) || isAdmin();
+    }
+
+    // ---------- teams / projects ----------
+    match /teams/{teamId} {
+      allow read: if isInternal();
+      allow write: if isAdminOrManager();
+    }
+
+    match /projects/{projectId} {
+      allow read: if isInternal();
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isAdminOrManager();
+    }
+
+    // ---------- future modules ----------
+    // When googleAdsCampaigns, metaAdsCampaigns, leads, reports, finance, etc.
+    // are introduced, add a `match /{collection}/{docId}` block here following
+    // the same shape: read gated by canReadClientScoped(resource.data.clientId),
+    // write gated by isInternal() + createdBySelf()/updatedBySelf(). No schema
+    // change is needed elsewhere to support this.
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
