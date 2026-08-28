@@ -7,7 +7,7 @@ import { ClientCard } from '../components/clients/ClientCard'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
-import { CLIENT_STATUS_LABEL } from '../types/client'
+import { CLIENT_STATUS_LABEL, getClientOwnerIds } from '../types/client'
 
 export function ClientsPage() {
   const navigate = useNavigate()
@@ -62,7 +62,12 @@ export function ClientsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => (
-            <ClientCard key={c.id} client={c} owner={c.ownerId ? userMap[c.ownerId] : undefined} onClick={() => navigate(`/clientes/${c.id}`)} />
+            <ClientCard
+              key={c.id}
+              client={c}
+              owners={getClientOwnerIds(c).map((id) => userMap[id]).filter(Boolean)}
+              onClick={() => navigate(`/clientes/${c.id}`)}
+            />
           ))}
         </div>
       )}

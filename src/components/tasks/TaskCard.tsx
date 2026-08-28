@@ -1,11 +1,11 @@
 import { format, isPast, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarClock, CheckSquare } from 'lucide-react'
+import { CalendarClock, CheckSquare, Repeat } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
-import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, type Task } from '../../types/task'
+import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, formatRecurrence, type Task } from '../../types/task'
 import type { AppUser, Client } from '../../types'
 
 export function TaskCard({
@@ -52,6 +52,11 @@ export function TaskCard({
         {dueDate && (
           <Badge className={overdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}>
             <CalendarClock size={11} /> {format(dueDate, 'dd MMM', { locale: ptBR })}
+          </Badge>
+        )}
+        {task.recurrence && (
+          <Badge title={formatRecurrence(task.recurrence)} className="bg-brand-50 text-brand-600">
+            <Repeat size={11} /> {task.recurrence.frequency === 'weekly' ? 'Semanal' : 'Mensal'}
           </Badge>
         )}
       </div>

@@ -49,17 +49,28 @@ export interface Client extends BaseDoc {
   website?: string
   city?: string
   segment?: string
+  /** CNPJ ou CPF, digits or formatted — free text, no mask enforced. */
+  document?: string
   status: ClientStatus
   package?: ClientPackage
   styleCatalog?: StyleCatalog
-  /** uid of the internal team member who owns this account */
+  /** @deprecated superseded by `ownerIds` (multi-owner). Kept so older docs
+   *  still resolve an owner until they're re-saved through the form. */
   ownerId?: string
+  /** uids of the internal team members who own this account (e.g. co-owned by
+   *  a Social Media and a Tráfego Pago manager). */
+  ownerIds?: string[]
+  /** Monthly contract value in BRL. */
+  monthlyValue?: number
+  contractStartDate?: Timestamp | null
   notes?: string
   logoUrl?: string
   briefing?: ClientBriefing
-  /** Reserved for future modules — presence here means "this client has data in that module". */
+  /** Which services this client has contracted — also drives which onboarding
+   *  task templates get created (see onboardingTemplates.ts / paidTrafficTemplates.ts). */
   modules?: {
     socialMedia?: boolean
+    paidTraffic?: boolean
     googleAds?: boolean
     metaAds?: boolean
     leads?: boolean
@@ -96,6 +107,13 @@ export const CLIENT_AUDIENCE_LABEL: Record<ClientAudience, string> = {
   residencial: 'Residencial',
   comercial: 'Comercial',
   ambos: 'Ambos',
+}
+
+/** Resolves owner uids for a client, falling back to the legacy single
+ *  `ownerId` for docs saved before multi-owner support existed. */
+export function getClientOwnerIds(client: Pick<Client, 'ownerIds' | 'ownerId'>): string[] {
+  if (client.ownerIds && client.ownerIds.length > 0) return client.ownerIds
+  return client.ownerId ? [client.ownerId] : []
 }
 
 export const APPROVAL_CHANNEL_LABEL: Record<ApprovalChannel, string> = {

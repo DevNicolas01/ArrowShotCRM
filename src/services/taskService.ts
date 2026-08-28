@@ -1,9 +1,10 @@
-import { orderBy, where, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
+import { orderBy, where, Timestamp, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
+import { addDays } from 'date-fns'
 import type { Task, TaskStatus } from '../types'
 import { collectionService } from './firestore'
 import { logActivity } from './activityService'
 import { createNotification } from './notificationService'
-import { TASK_STATUS_LABEL } from '../types/task'
+import { TASK_STATUS_LABEL, nextRecurrenceDate } from '../types/task'
 
 const COLLECTION = 'tasks'
 const base = collectionService<Task>(COLLECTION)
@@ -80,6 +81,32 @@ export async function moveTaskStatus(
       userName,
     })
   }
+}
+
+/** No backend scheduler exists in this project (see recurrence comment on
+ *  Task) — this is the manual stand-in: spawns the next occurrence as a fresh
+ *  task, one day after this one's due date (or from today if it had none). */
+export async function duplicateRecurringTask(task: Task, userId: string, userName: string) {
+  if (!task.recurrence) return
+  const after = task.dueDate ? addDays(task.dueDate.toDate(), 1) : new Date()
+  const nextDueDate = Timestamp.fromDate(nextRecurrenceDate(task.recurrence, after))
+
+  return createTask(
+    {
+      title: task.title,
+      description: task.description,
+      clientId: task.clientId,
+      assignedTo: task.assignedTo,
+      dueDate: nextDueDate,
+      priority: task.priority,
+      status: 'todo',
+      checklist: (task.checklist ?? []).map((item) => ({ ...item, done: false })),
+      order: Date.now(),
+      recurrence: task.recurrence,
+    },
+    userId,
+    userName
+  )
 }
 
 export async function deleteTask(task: Task, userId: string, userName: string) {

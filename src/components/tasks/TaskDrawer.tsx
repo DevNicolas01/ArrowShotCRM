@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Trash2, Repeat } from 'lucide-react'
 import { Drawer } from '../ui/Drawer'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Tabs } from '../ui/Tabs'
@@ -12,11 +13,12 @@ import { FilesPanel } from '../files/FilesPanel'
 import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
-import { updateTask, deleteTask } from '../../services/taskService'
+import { updateTask, deleteTask, duplicateRecurringTask } from '../../services/taskService'
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
   TASK_STATUS_ORDER,
+  formatRecurrence,
   type Task,
 } from '../../types/task'
 
@@ -39,6 +41,11 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
     if (!confirm(`Excluir a tarefa "${task.title}"?`)) return
     await deleteTask(task, profile.id, profile.name)
     onClose()
+  }
+
+  const handleDuplicateNext = async () => {
+    await duplicateRecurringTask(task, profile.id, profile.name)
+    toast.success('Próxima ocorrência criada')
   }
 
   return (
@@ -121,6 +128,17 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
         <Field label="Checklist">
           <ChecklistEditor items={task.checklist ?? []} onChange={(checklist) => save({ checklist })} />
         </Field>
+
+        {task.recurrence && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-brand-100 bg-brand-50 px-3 py-2">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-brand-700">
+              <Repeat size={13} /> {formatRecurrence(task.recurrence)}
+            </p>
+            <Button variant="ghost" size="sm" onClick={handleDuplicateNext}>
+              Duplicar próxima ocorrência
+            </Button>
+          </div>
+        )}
 
         <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={handleDelete} className="self-start">
           Excluir tarefa

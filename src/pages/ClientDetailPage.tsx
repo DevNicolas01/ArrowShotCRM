@@ -22,7 +22,7 @@ import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { TaskFormModal } from '../components/tasks/TaskFormModal'
 import { ContentDrawer } from '../components/content/ContentDrawer'
 import { ContentFormModal } from '../components/content/ContentFormModal'
-import { CLIENT_PACKAGE_LABEL, CLIENT_STATUS_LABEL, STYLE_CATALOG_LABEL } from '../types/client'
+import { CLIENT_PACKAGE_LABEL, CLIENT_STATUS_LABEL, STYLE_CATALOG_LABEL, getClientOwnerIds } from '../types/client'
 import { TASK_STATUS_LABEL } from '../types/task'
 import { CONTENT_STATUS_LABEL } from '../types/content'
 
@@ -45,7 +45,9 @@ export function ClientDetailPage() {
     return <EmptyState title="Cliente não encontrado" action={<Button onClick={() => navigate('/clientes')}>Voltar</Button>} />
   }
 
-  const owner = client.ownerId ? users.find((u) => u.id === client.ownerId) : undefined
+  const owners = getClientOwnerIds(client)
+    .map((uid) => users.find((u) => u.id === uid))
+    .filter((u): u is (typeof users)[number] => !!u)
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null
   const openContent = contents.find((c) => c.id === openContentId) ?? null
 
@@ -83,9 +85,14 @@ export function ClientDetailPage() {
           {client.instagram && <span className="flex items-center gap-1"><Camera size={12} /> {client.instagram}</span>}
           {client.facebook && <span className="flex items-center gap-1"><ThumbsUp size={12} /> {client.facebook}</span>}
           {client.website && <span className="flex items-center gap-1"><Globe size={12} /> {client.website}</span>}
-          {owner && (
+          {owners.length > 0 && (
             <span className="ml-auto flex items-center gap-1.5">
-              Responsável: <Avatar name={owner.name} photoURL={owner.photoURL} size="xs" /> {owner.name}
+              Responsáveis:
+              {owners.map((o) => (
+                <span key={o.id} className="flex items-center gap-1">
+                  <Avatar name={o.name} photoURL={o.photoURL} size="xs" /> {o.name}
+                </span>
+              ))}
             </span>
           )}
         </div>

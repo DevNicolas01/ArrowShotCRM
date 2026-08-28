@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
+import { Timestamp } from 'firebase/firestore'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
@@ -7,11 +8,13 @@ import { useAuth } from '../../context/AuthContext'
 import { useUsers } from '../../hooks/useUsers'
 import { createClient, updateClient } from '../../services/clientService'
 import { createOnboardingTasks } from '../../services/onboardingTemplates'
+import { createPaidTrafficTasks } from '../../services/paidTrafficTemplates'
 import {
   CLIENT_PACKAGE_LABEL,
   CLIENT_STATUS_LABEL,
   STYLE_CATALOG_DESCRIPTION,
   STYLE_CATALOG_LABEL,
+  getClientOwnerIds,
   type Client,
   type ClientPackage,
   type ClientStatus,
@@ -28,11 +31,23 @@ const EMPTY = {
   website: '',
   city: '',
   segment: '',
+  document: '',
   status: 'prospect' as ClientStatus,
   package: '' as ClientPackage | '',
   styleCatalog: '' as StyleCatalog | '',
-  ownerId: '',
+  ownerIds: [] as string[],
+  monthlyValue: '',
+  contractStartDate: '',
   notes: '',
+  socialMedia: false,
+  paidTraffic: false,
+  metaAds: false,
+  googleAds: false,
+}
+
+function toDateInputValue(ts?: Timestamp | null) {
+  if (!ts) return ''
+  return ts.toDate().toISOString().slice(0, 10)
 }
 
 export function ClientFormModal({
@@ -62,11 +77,18 @@ export function ClientFormModal({
         website: client.website ?? '',
         city: client.city ?? '',
         segment: client.segment ?? '',
+        document: client.document ?? '',
         status: client.status,
         package: client.package ?? '',
         styleCatalog: client.styleCatalog ?? '',
-        ownerId: client.ownerId ?? '',
+        ownerIds: getClientOwnerIds(client),
+        monthlyValue: client.monthlyValue != null ? String(client.monthlyValue) : '',
+        contractStartDate: toDateInputValue(client.contractStartDate),
         notes: client.notes ?? '',
+        socialMedia: client.modules?.socialMedia ?? false,
+        paidTraffic: client.modules?.paidTraffic ?? false,
+        metaAds: client.modules?.metaAds ?? false,
+        googleAds: client.modules?.googleAds ?? false,
       })
     } else {
       setForm(EMPTY)
@@ -76,6 +98,19 @@ export function ClientFormModal({
 
   const set = <K extends keyof typeof EMPTY>(key: K, value: (typeof EMPTY)[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
+
+  const toggleOwner = (uid: string) =>
+    setForm((f) => ({
+      ...f,
+      ownerIds: f.ownerIds.includes(uid) ? f.ownerIds.filter((id) => id !== uid) : [...f.ownerIds, uid],
+    }))
+
+  const autoTaskSummary = [
+    form.socialMedia && 'Social Media: Ativação + Materiais',
+    form.paidTraffic && 'Tráfego Pago: Onboarding, Briefing e Acessos, Planejamento de Campanhas + recorrentes',
+  ]
+    .filter(Boolean)
+    .join('; ')
 
   const handleSubmit = async () => {
     if (!form.companyName.trim() || !profile) return
@@ -91,11 +126,21 @@ export function ClientFormModal({
         website: form.website || undefined,
         city: form.city || undefined,
         segment: form.segment || undefined,
+        document: form.document || undefined,
         status: form.status,
-        package: form.package || undefined,
+        package: form.socialMedia ? form.package || undefined : undefined,
         styleCatalog: form.styleCatalog || undefined,
-        ownerId: form.ownerId || undefined,
+        ownerIds: form.ownerIds.length > 0 ? form.ownerIds : undefined,
+        monthlyValue: form.monthlyValue ? Number(form.monthlyValue) : undefined,
+        contractStartDate: form.contractStartDate ? Timestamp.fromDate(new Date(form.contractStartDate)) : null,
         notes: form.notes || undefined,
+        modules: {
+          ...client?.modules,
+          socialMedia: form.socialMedia,
+          paidTraffic: form.paidTraffic,
+          metaAds: form.paidTraffic && form.metaAds,
+          googleAds: form.paidTraffic && form.googleAds,
+        },
       }
       if (client) {
         await updateClient(client.id, payload, profile.id, profile.name)
@@ -103,7 +148,14 @@ export function ClientFormModal({
       } else {
         const newClientId = await createClient(payload, profile.id, profile.name)
         if (createTasks) {
-          await createOnboardingTasks({ id: newClientId, companyName: payload.companyName }, profile.id, profile.name)
+          const newClient = { id: newClientId, companyName: payload.companyName }
+          const trafficOwnerId = form.ownerIds[0] ?? profile.id
+          if (form.socialMedia) {
+            await createOnboardingTasks(newClient, profile.id, profile.name)
+          }
+          if (form.paidTraffic) {
+            await createPaidTrafficTasks(newClient, profile.id, profile.name, trafficOwnerId)
+          }
         }
         toast.success('Cliente cadastrado')
       }
@@ -146,6 +198,9 @@ export function ClientFormModal({
         <Field label="Segmento">
           <Input value={form.segment} onChange={(e) => set('segment', e.target.value)} placeholder="Ex: Limpeza, Estética" />
         </Field>
+        <Field label="CNPJ ou CPF">
+          <Input value={form.document} onChange={(e) => set('document', e.target.value)} placeholder="00.000.000/0000-00" />
+        </Field>
         <Field label="Status">
           <Select value={form.status} onChange={(e) => set('status', e.target.value as ClientStatus)}>
             {Object.entries(CLIENT_STATUS_LABEL).map(([v, l]) => (
@@ -155,16 +210,85 @@ export function ClientFormModal({
             ))}
           </Select>
         </Field>
-        <Field label="Pacote (Social Media)">
-          <Select value={form.package} onChange={(e) => set('package', e.target.value as ClientPackage)}>
-            <option value="">Nenhum</option>
-            {Object.entries(CLIENT_PACKAGE_LABEL).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </Select>
+
+        <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Serviços contratados</p>
+
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.paidTraffic}
+              onChange={(e) => set('paidTraffic', e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+            />
+            Tráfego Pago
+          </label>
+          {form.paidTraffic && (
+            <div className="ml-6 flex flex-col gap-1.5">
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.metaAds}
+                  onChange={(e) => set('metaAds', e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                />
+                Meta Ads
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.googleAds}
+                  onChange={(e) => set('googleAds', e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                />
+                Google Ads
+              </label>
+            </div>
+          )}
+
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.socialMedia}
+              onChange={(e) => set('socialMedia', e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+            />
+            Social Media
+          </label>
+          {form.socialMedia && (
+            <div className="ml-6">
+              <Field label="Pacote">
+                <Select value={form.package} onChange={(e) => set('package', e.target.value as ClientPackage)}>
+                  <option value="">Nenhum</option>
+                  {Object.entries(CLIENT_PACKAGE_LABEL).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          )}
+        </div>
+
+        <Field label="Valor mensal do contrato">
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.monthlyValue}
+            onChange={(e) => set('monthlyValue', e.target.value)}
+            placeholder="R$ 0,00"
+          />
         </Field>
+        <Field label="Data de início do contrato">
+          <Input
+            type="date"
+            value={form.contractStartDate}
+            onChange={(e) => set('contractStartDate', e.target.value)}
+          />
+        </Field>
+
         <div className="sm:col-span-2">
           <Field label="Catálogo de estilo">
             <Select
@@ -183,16 +307,26 @@ export function ClientFormModal({
             )}
           </Field>
         </div>
-        <Field label="Responsável interno">
-          <Select value={form.ownerId} onChange={(e) => set('ownerId', e.target.value)}>
-            <option value="">Nenhum</option>
+
+        <div className="sm:col-span-2">
+          <span className="mb-1 block text-xs font-medium text-slate-500">Responsável interno</span>
+          <div className="flex flex-col gap-1.5 rounded-lg border border-slate-200 p-2.5">
+            {users.length === 0 && <p className="text-xs text-slate-400">Nenhum usuário cadastrado.</p>}
             {users.map((u) => (
-              <option key={u.id} value={u.id}>
+              <label key={u.id} className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.ownerIds.includes(u.id)}
+                  onChange={() => toggleOwner(u.id)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                />
                 {u.name}
-              </option>
+              </label>
             ))}
-          </Select>
-        </Field>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">Selecione um ou mais responsáveis (ex: co-gestão de Tráfego Pago).</p>
+        </div>
+
         <div className="sm:col-span-2">
           <Field label="Observações">
             <Textarea rows={2} value={form.notes} onChange={(e) => set('notes', e.target.value)} />
@@ -200,7 +334,7 @@ export function ClientFormModal({
         </div>
       </div>
 
-      {!client && (
+      {!client && (form.socialMedia || form.paidTraffic) && (
         <label className="mt-3 flex items-start gap-2 text-xs text-slate-500">
           <input
             type="checkbox"
@@ -208,7 +342,7 @@ export function ClientFormModal({
             onChange={(e) => setCreateTasks(e.target.checked)}
             className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
           />
-          Criar automaticamente as tarefas de "Ativação" e "Materiais" com o checklist padrão (playbook de Social Media)
+          Criar automaticamente as tarefas padrão dos serviços marcados acima ({autoTaskSummary})
         </label>
       )}
 

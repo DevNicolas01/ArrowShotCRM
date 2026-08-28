@@ -13,11 +13,11 @@ const STATUS_COLOR: Record<Client['status'], string> = {
 
 export function ClientCard({
   client,
-  owner,
+  owners,
   onClick,
 }: {
   client: Client
-  owner?: AppUser
+  owners?: AppUser[]
   onClick: () => void
 }) {
   return (
@@ -39,7 +39,15 @@ export function ClientCard({
             {client.contactName && <p className="truncate text-xs text-slate-400">{client.contactName}</p>}
           </div>
         </div>
-        {owner && <Avatar name={owner.name} photoURL={owner.photoURL} size="xs" />}
+        {owners && owners.length > 0 && (
+          <div className="flex shrink-0 -space-x-1.5">
+            {owners.map((o) => (
+              <div key={o.id} className="rounded-full ring-2 ring-white">
+                <Avatar name={o.name} photoURL={o.photoURL} size="xs" />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
