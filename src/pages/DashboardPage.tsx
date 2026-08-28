@@ -6,6 +6,7 @@ import { useAllTasks } from '../hooks/useTasks'
 import { useAllContents } from '../hooks/useContents'
 import { useClients } from '../hooks/useClients'
 import { EmptyState } from '../components/ui/EmptyState'
+import { DashboardEmptyState } from '../components/dashboard/DashboardEmptyState'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { ContentDrawer } from '../components/content/ContentDrawer'
 import type { Task } from '../types/task'
@@ -16,20 +17,37 @@ function SectionCard({
   icon,
   accent,
   count,
+  urgency,
   children,
 }: {
   title: string
   icon: React.ReactNode
   accent: string
   count: number
+  /** 'high' = overdue-style red emphasis, 'medium' = today-style blue emphasis, applied only when count > 0. */
+  urgency?: 'high' | 'medium'
   children: React.ReactNode
 }) {
+  const emphasized = !!urgency && count > 0
+
+  const wrapperClass = !emphasized
+    ? 'flex flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm'
+    : urgency === 'high'
+      ? 'flex flex-col rounded-xl border-2 border-red-300 bg-red-50 p-4 shadow-md shadow-red-200/60'
+      : 'flex flex-col rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm shadow-blue-200/40'
+
+  const countClass = !emphasized
+    ? 'ml-auto text-xs font-medium text-slate-400'
+    : urgency === 'high'
+      ? 'ml-auto text-lg font-bold text-red-600'
+      : 'ml-auto text-base font-bold text-blue-600'
+
   return (
-    <div className="flex flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+    <div className={wrapperClass}>
       <div className="mb-3 flex items-center gap-2">
         <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${accent}`}>{icon}</div>
         <p className="text-sm font-semibold text-slate-700">{title}</p>
-        <span className="ml-auto text-xs font-medium text-slate-400">{count}</span>
+        <span className={countClass}>{count}</span>
       </div>
       <div className="flex flex-col gap-1.5">{children}</div>
     </div>
@@ -72,6 +90,7 @@ export function DashboardPage() {
   const { data: clients } = useClients()
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [openContentId, setOpenContentId] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null
   const openContent = contents.find((c) => c.id === openContentId) ?? null
 
@@ -94,6 +113,14 @@ export function DashboardPage() {
     return { today, overdue, upcoming, inProduction, waitingApproval, approved, nextPublications }
   }, [tasks, contents])
 
+  const allZero =
+    buckets.today.length === 0 &&
+    buckets.overdue.length === 0 &&
+    buckets.upcoming.length === 0 &&
+    buckets.inProduction.length === 0 &&
+    buckets.waitingApproval.length === 0 &&
+    buckets.approved.length === 0
+
   const clientSummary = useMemo(() => {
     return clients
       .map((c) => ({
@@ -113,55 +140,139 @@ export function DashboardPage() {
         <p className="text-sm text-slate-400">Visão geral do que precisa da sua atenção hoje.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <SectionCard title="Tarefas de hoje" icon={<Clock size={14} className="text-white" />} accent="bg-blue-500" count={buckets.today.length}>
-          {buckets.today.length === 0 ? (
-            <EmptyState title="Nada para hoje" />
-          ) : (
-            buckets.today.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
+      {allZero && !expanded ? (
+        <DashboardEmptyState
+          counts={{
+            today: buckets.today.length,
+            overdue: buckets.overdue.length,
+            upcoming: buckets.upcoming.length,
+            inProduction: buckets.inProduction.length,
+            waitingApproval: buckets.waitingApproval.length,
+            approved: buckets.approved.length,
+          }}
+          onExpand={() => setExpanded(true)}
+        />
+      ) : (
+        <>
+          {allZero && (
+            <button
+              onClick={() => setExpanded(false)}
+              className="self-start text-xs font-medium text-slate-400 hover:text-brand-500"
+            >
+              ← Recolher
+            </button>
           )}
-        </SectionCard>
-
-        <SectionCard title="Tarefas atrasadas" icon={<AlertTriangle size={14} className="text-white" />} accent="bg-red-500" count={buckets.overdue.length}>
-          {buckets.overdue.length === 0 ? (
-            <EmptyState title="Nenhuma pendência" />
-          ) : (
-            buckets.overdue.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
-          )}
-        </SectionCard>
-
-        <SectionCard title="Próximas (7 dias)" icon={<CheckCircle2 size={14} className="text-white" />} accent="bg-emerald-500" count={buckets.upcoming.length}>
-          {buckets.upcoming.length === 0 ? (
-            <EmptyState title="Nada agendado" />
-          ) : (
-            buckets.upcoming.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
-          )}
-        </SectionCard>
-
-        <SectionCard title="Em produção" icon={<Sparkles size={14} className="text-white" />} accent="bg-brand-500" count={buckets.inProduction.length}>
-          {buckets.inProduction.length === 0 ? (
-            <EmptyState title="Nada em produção" />
-          ) : (
-            buckets.inProduction.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
-          )}
-        </SectionCard>
-
-        <SectionCard title="Aguardando aprovação" icon={<Send size={14} className="text-white" />} accent="bg-amber-500" count={buckets.waitingApproval.length}>
-          {buckets.waitingApproval.length === 0 ? (
-            <EmptyState title="Nada pendente" />
-          ) : (
-            buckets.waitingApproval.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
-          )}
-        </SectionCard>
-
-        <SectionCard title="Conteúdos aprovados" icon={<ThumbsUp size={14} className="text-white" />} accent="bg-teal-500" count={buckets.approved.length}>
-          {buckets.approved.length === 0 ? (
-            <EmptyState title="Nada aprovado ainda" />
-          ) : (
-            buckets.approved.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
-          )}
-        </SectionCard>
-      </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {(buckets.overdue.length > 0
+              ? ['overdue', 'today', 'upcoming', 'inProduction', 'waitingApproval', 'approved']
+              : ['today', 'overdue', 'upcoming', 'inProduction', 'waitingApproval', 'approved']
+            ).map((key) => {
+              switch (key) {
+                case 'today':
+                  return (
+                    <SectionCard
+                      key="today"
+                      title="Tarefas de hoje"
+                      icon={<Clock size={14} className="text-white" />}
+                      accent="bg-blue-500"
+                      count={buckets.today.length}
+                      urgency="medium"
+                    >
+                      {buckets.today.length === 0 ? (
+                        <EmptyState title="Nada para hoje" />
+                      ) : (
+                        buckets.today.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                case 'overdue':
+                  return (
+                    <SectionCard
+                      key="overdue"
+                      title="Tarefas atrasadas"
+                      icon={<AlertTriangle size={14} className="text-white" />}
+                      accent="bg-red-500"
+                      count={buckets.overdue.length}
+                      urgency="high"
+                    >
+                      {buckets.overdue.length === 0 ? (
+                        <EmptyState title="Nenhuma pendência" />
+                      ) : (
+                        buckets.overdue.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                case 'upcoming':
+                  return (
+                    <SectionCard
+                      key="upcoming"
+                      title="Próximas (7 dias)"
+                      icon={<CheckCircle2 size={14} className="text-white" />}
+                      accent="bg-emerald-500"
+                      count={buckets.upcoming.length}
+                    >
+                      {buckets.upcoming.length === 0 ? (
+                        <EmptyState title="Nada agendado" />
+                      ) : (
+                        buckets.upcoming.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                case 'inProduction':
+                  return (
+                    <SectionCard
+                      key="inProduction"
+                      title="Em produção"
+                      icon={<Sparkles size={14} className="text-white" />}
+                      accent="bg-brand-500"
+                      count={buckets.inProduction.length}
+                    >
+                      {buckets.inProduction.length === 0 ? (
+                        <EmptyState title="Nada em produção" />
+                      ) : (
+                        buckets.inProduction.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                case 'waitingApproval':
+                  return (
+                    <SectionCard
+                      key="waitingApproval"
+                      title="Aguardando aprovação"
+                      icon={<Send size={14} className="text-white" />}
+                      accent="bg-amber-500"
+                      count={buckets.waitingApproval.length}
+                    >
+                      {buckets.waitingApproval.length === 0 ? (
+                        <EmptyState title="Nada pendente" />
+                      ) : (
+                        buckets.waitingApproval.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                case 'approved':
+                  return (
+                    <SectionCard
+                      key="approved"
+                      title="Conteúdos aprovados"
+                      icon={<ThumbsUp size={14} className="text-white" />}
+                      accent="bg-teal-500"
+                      count={buckets.approved.length}
+                    >
+                      {buckets.approved.length === 0 ? (
+                        <EmptyState title="Nada aprovado ainda" />
+                      ) : (
+                        buckets.approved.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
+                      )}
+                    </SectionCard>
+                  )
+                default:
+                  return null
+              }
+            })}
+          </div>
+        </>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <SectionCard title="Próximas publicações" icon={<CalendarDays size={14} className="text-white" />} accent="bg-fuchsia-500" count={buckets.nextPublications.length}>
