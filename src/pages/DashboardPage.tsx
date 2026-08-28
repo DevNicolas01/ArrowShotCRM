@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react'
 import { format, isPast, isToday, isWithinInterval, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CheckCircle2, AlertTriangle, Clock, Sparkles, Send, ThumbsUp, CalendarDays } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Clock, Sparkles, Send, ThumbsUp, CalendarDays, Plus } from 'lucide-react'
 import { useAllTasks } from '../hooks/useTasks'
 import { useAllContents } from '../hooks/useContents'
 import { useClients } from '../hooks/useClients'
 import { EmptyState } from '../components/ui/EmptyState'
 import { DashboardEmptyState } from '../components/dashboard/DashboardEmptyState'
+import { Button } from '../components/ui/Button'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
+import { TaskFormModal } from '../components/tasks/TaskFormModal'
 import { ContentDrawer } from '../components/content/ContentDrawer'
+import { ContentFormModal } from '../components/content/ContentFormModal'
 import type { Task } from '../types/task'
 import type { Content } from '../types/content'
 
@@ -68,6 +71,22 @@ function TaskRow({ task, onClick }: { task: Task; onClick: () => void }) {
   )
 }
 
+function AddTaskAction({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={onClick}>
+      Adicionar tarefa
+    </Button>
+  )
+}
+
+function AddContentAction({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={onClick}>
+      Criar conteúdo
+    </Button>
+  )
+}
+
 function ContentRow({ content, onClick }: { content: Content; onClick: () => void }) {
   return (
     <button
@@ -91,6 +110,8 @@ export function DashboardPage() {
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [openContentId, setOpenContentId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [contentModalOpen, setContentModalOpen] = useState(false)
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null
   const openContent = contents.find((c) => c.id === openContentId) ?? null
 
@@ -179,7 +200,7 @@ export function DashboardPage() {
                       urgency="medium"
                     >
                       {buckets.today.length === 0 ? (
-                        <EmptyState title="Nada para hoje" />
+                        <EmptyState title="Nada para hoje" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
                       ) : (
                         buckets.today.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
                       )}
@@ -196,7 +217,7 @@ export function DashboardPage() {
                       urgency="high"
                     >
                       {buckets.overdue.length === 0 ? (
-                        <EmptyState title="Nenhuma pendência" />
+                        <EmptyState title="Nenhuma pendência" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
                       ) : (
                         buckets.overdue.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
                       )}
@@ -212,7 +233,7 @@ export function DashboardPage() {
                       count={buckets.upcoming.length}
                     >
                       {buckets.upcoming.length === 0 ? (
-                        <EmptyState title="Nada agendado" />
+                        <EmptyState title="Nada agendado" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
                       ) : (
                         buckets.upcoming.map((t) => <TaskRow key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />)
                       )}
@@ -228,7 +249,7 @@ export function DashboardPage() {
                       count={buckets.inProduction.length}
                     >
                       {buckets.inProduction.length === 0 ? (
-                        <EmptyState title="Nada em produção" />
+                        <EmptyState title="Nada em produção" action={<AddContentAction onClick={() => setContentModalOpen(true)} />} />
                       ) : (
                         buckets.inProduction.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
                       )}
@@ -244,7 +265,7 @@ export function DashboardPage() {
                       count={buckets.waitingApproval.length}
                     >
                       {buckets.waitingApproval.length === 0 ? (
-                        <EmptyState title="Nada pendente" />
+                        <EmptyState title="Nada pendente" action={<AddContentAction onClick={() => setContentModalOpen(true)} />} />
                       ) : (
                         buckets.waitingApproval.map((c) => <ContentRow key={c.id} content={c} onClick={() => setOpenContentId(c.id)} />)
                       )}
@@ -304,6 +325,8 @@ export function DashboardPage() {
 
       <TaskDrawer key={`task-${openTaskId ?? 'none'}`} task={openTask} onClose={() => setOpenTaskId(null)} />
       <ContentDrawer key={`content-${openContentId ?? 'none'}`} content={openContent} onClose={() => setOpenContentId(null)} />
+      <TaskFormModal open={taskModalOpen} onClose={() => setTaskModalOpen(false)} />
+      <ContentFormModal open={contentModalOpen} onClose={() => setContentModalOpen(false)} />
     </div>
   )
 }
