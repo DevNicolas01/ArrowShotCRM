@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -12,6 +13,8 @@ import {
   BarChart3,
   Wallet,
   Lock,
+  ChevronRight,
+  ChevronDown,
   UserCog,
   GraduationCap,
   X,
@@ -37,6 +40,8 @@ const futureNav = [
   { label: 'Financeiro', icon: Wallet },
 ]
 
+const FUTURE_NAV_OPEN_KEY = 'sidebar:futureNavOpen'
+
 export function Sidebar({
   mobileOpen,
   onCloseMobile,
@@ -46,6 +51,15 @@ export function Sidebar({
 }) {
   const { profile } = useAuth()
   const canSeeUniversity = profile?.role === 'admin' || profile?.role === 'manager' || profile?.role === 'employee'
+  const [futureNavOpen, setFutureNavOpen] = useState(() => localStorage.getItem(FUTURE_NAV_OPEN_KEY) === 'true')
+
+  const toggleFutureNav = () => {
+    setFutureNavOpen((open) => {
+      const next = !open
+      localStorage.setItem(FUTURE_NAV_OPEN_KEY, String(next))
+      return next
+    })
+  }
 
   return (
     <>
@@ -117,20 +131,36 @@ export function Sidebar({
             </NavLink>
           )}
 
-          <p className="mt-5 mb-1 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <button
+            onClick={toggleFutureNav}
+            className="mt-5 mb-1 flex w-full items-center gap-1 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-300"
+          >
+            {futureNavOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             Em breve
-          </p>
-          {futureNav.map(({ label, icon: Icon }) => (
+          </button>
+          <div
+            className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
+              futureNavOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
             <div
-              key={label}
-              title="Módulo em preparação"
-              className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-500"
+              className={`flex flex-col gap-0.5 overflow-hidden transition-opacity duration-200 ${
+                futureNavOpen ? 'opacity-100' : 'opacity-0'
+              }`}
             >
-              <Icon size={17} />
-              {label}
-              <Lock size={12} className="ml-auto" />
+              {futureNav.map(({ label, icon: Icon }) => (
+                <div
+                  key={label}
+                  title="Módulo em preparação"
+                  className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-500"
+                >
+                  <Icon size={17} />
+                  {label}
+                  <Lock size={12} className="ml-auto" />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </nav>
 
         {profile && (
