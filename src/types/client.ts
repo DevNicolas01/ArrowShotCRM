@@ -1,5 +1,6 @@
 import type { Timestamp } from 'firebase/firestore'
 import type { BaseDoc } from './common'
+import type { CommercialBriefing } from './commercialBriefing'
 
 export type ClientStatus = 'active' | 'paused' | 'churned' | 'prospect'
 
@@ -66,6 +67,9 @@ export interface Client extends BaseDoc {
   notes?: string
   logoUrl?: string
   briefing?: ClientBriefing
+  /** Full CS/comercial onboarding briefing — separate tab and schema from the
+   *  shorter Social Media `briefing` above (see commercialBriefing.ts). */
+  commercialBriefing?: CommercialBriefing
   /** Which services this client has contracted — also drives which onboarding
    *  task templates get created (see onboardingTemplates.ts / paidTrafficTemplates.ts). */
   modules?: {

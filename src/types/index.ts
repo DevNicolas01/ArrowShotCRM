@@ -1,6 +1,7 @@
 export * from './common'
 export * from './user'
 export * from './client'
+export * from './commercialBriefing'
 export * from './task'
 export * from './content'
 export * from './approval'

@@ -1,4 +1,4 @@
-import { orderBy, where, Timestamp, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
+import { orderBy, where, getDocs, query, Timestamp, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
 import { addDays } from 'date-fns'
 import type { Task, TaskStatus } from '../types'
 import { collectionService } from './firestore'
@@ -149,4 +149,33 @@ export function subscribeTasks(
  *  (avoids a composite range-query index just for a summary view). */
 export function subscribeAllTasks(onData: (items: Task[]) => void, onError?: (err: FirestoreError) => void) {
   return base.subscribe([orderBy('dueDate', 'asc')], onData, onError)
+}
+
+/** One-shot fetch (not a live listener) — used by side-effects that just need
+ *  a snapshot at a point in time, like marking a checklist item on save. */
+export async function getClientTasks(clientId: string): Promise<Task[]> {
+  const snap = await getDocs(query(base.colRef, where('clientId', '==', clientId)))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as Task)
+}
+
+/** Called after the Briefing Comercial is saved: finds any not-yet-done
+ *  checklist item mentioning "briefing" across the client's tasks (covers
+ *  both the Social Media Ativação item and the Tráfego Pago Briefing e
+ *  Acessos ones) and checks it off. */
+export async function markBriefingChecklistDone(clientId: string, userId: string, userName: string) {
+  const tasks = await getClientTasks(clientId)
+  for (const task of tasks) {
+    const checklist = task.checklist ?? []
+    let changed = false
+    const updated = checklist.map((item) => {
+      if (!item.done && item.text.toLowerCase().includes('briefing')) {
+        changed = true
+        return { ...item, done: true }
+      }
+      return item
+    })
+    if (changed) {
+      await updateTask(task.id, { checklist: updated }, userId, userName)
+    }
+  }
 }

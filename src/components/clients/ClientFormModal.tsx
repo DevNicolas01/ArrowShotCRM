@@ -129,7 +129,7 @@ export function ClientFormModal({
         document: form.document || undefined,
         status: form.status,
         package: form.socialMedia ? form.package || undefined : undefined,
-        styleCatalog: form.styleCatalog || undefined,
+        styleCatalog: form.socialMedia ? form.styleCatalog || undefined : undefined,
         ownerIds: form.ownerIds.length > 0 ? form.ownerIds : undefined,
         monthlyValue: form.monthlyValue ? Number(form.monthlyValue) : undefined,
         contractStartDate: form.contractStartDate ? Timestamp.fromDate(new Date(form.contractStartDate)) : null,
@@ -289,24 +289,26 @@ export function ClientFormModal({
           />
         </Field>
 
-        <div className="sm:col-span-2">
-          <Field label="Catálogo de estilo">
-            <Select
-              value={form.styleCatalog}
-              onChange={(e) => set('styleCatalog', (e.target.value ? Number(e.target.value) : '') as StyleCatalog | '')}
-            >
-              <option value="">Nenhum escolhido ainda</option>
-              {Object.entries(STYLE_CATALOG_LABEL).map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
-                </option>
-              ))}
-            </Select>
-            {form.styleCatalog && (
-              <p className="mt-1 text-xs text-slate-400">{STYLE_CATALOG_DESCRIPTION[form.styleCatalog]}</p>
-            )}
-          </Field>
-        </div>
+        {form.socialMedia && (
+          <div className="sm:col-span-2">
+            <Field label="Catálogo de estilo">
+              <Select
+                value={form.styleCatalog}
+                onChange={(e) => set('styleCatalog', (e.target.value ? Number(e.target.value) : '') as StyleCatalog | '')}
+              >
+                <option value="">Nenhum escolhido ainda</option>
+                {Object.entries(STYLE_CATALOG_LABEL).map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </Select>
+              {form.styleCatalog && (
+                <p className="mt-1 text-xs text-slate-400">{STYLE_CATALOG_DESCRIPTION[form.styleCatalog]}</p>
+              )}
+            </Field>
+          </div>
+        )}
 
         <div className="sm:col-span-2">
           <span className="mb-1 block text-xs font-medium text-slate-500">Responsável interno</span>
