@@ -17,9 +17,25 @@ import { ModuleFormModal } from '../components/university/ModuleFormModal'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Field'
 import { Badge } from '../components/ui/Badge'
+import { Avatar } from '../components/ui/Avatar'
 import { Spinner } from '../components/ui/FullPageSpinner'
 import { EmptyState } from '../components/ui/EmptyState'
-import type { Module, Trail } from '../types'
+import type { AppUser, Module, Trail } from '../types'
+
+/** `name` falls back to the raw e-mail when Firebase Auth has no displayName
+ *  (see AuthContext) — reformat that case into a readable display name.
+ *  TODO: o ideal é ter um campo "nome" preenchido no cadastro do funcionário,
+ *  em vez de depender desse fallback. */
+function displayNameFor(user: AppUser) {
+  if (!user.name.includes('@')) return user.name
+
+  return user.email
+    .split('@')[0]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 export function UniversityAdminPage() {
   const navigate = useNavigate()
@@ -188,9 +204,18 @@ export function UniversityAdminPage() {
                     userProgress.length > 0
                       ? Math.round(userProgress.reduce((sum, p) => sum + p.quizScore, 0) / userProgress.length)
                       : null
+                  const displayName = displayNameFor(u)
                   return (
                     <tr key={u.id} className="border-b border-slate-50 last:border-0">
-                      <td className="px-4 py-2.5 text-slate-700">{u.name}</td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={displayName} photoURL={u.photoURL} size="sm" />
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-slate-700">{displayName}</p>
+                            <p className="truncate text-xs text-slate-400">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-4 py-2.5 text-slate-600">
                         {userProgress.length}/{modules.length}
                       </td>
