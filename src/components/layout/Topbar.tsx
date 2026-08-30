@@ -63,7 +63,11 @@ export function Topbar({
       )}
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-        <Button size="sm" icon={<Plus size={14} />} onClick={() => setQuickAddOpen(true)}>
+        <Button
+          style={{ height: '40px', borderRadius: '10px', fontWeight: 600, fontSize: '14px', padding: '0 20px' }}
+          icon={<Plus size={14} />}
+          onClick={() => setQuickAddOpen(true)}
+        >
           <span className="hidden sm:inline">Nova tarefa</span>
         </Button>
 
