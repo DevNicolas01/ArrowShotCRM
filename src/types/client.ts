@@ -2,6 +2,7 @@ import type { Timestamp } from 'firebase/firestore'
 import type { BaseDoc } from './common'
 import type { PaidTrafficBriefing } from './paidTrafficBriefing'
 import type { ClientAccess } from './clientAccess'
+import type { CampaignPlanning } from './campaignPlanning'
 
 export type ClientStatus = 'active' | 'paused' | 'churned' | 'prospect'
 
@@ -77,6 +78,9 @@ export interface Client extends BaseDoc {
   /** Acessos (contas de anúncios, redes, Drive...) — preenchido pelos
    *  gestores, separado do briefing preenchido pelo CS (ver clientAccess.ts). */
   access?: ClientAccess
+  /** Planejamento de Campanha — preenchido pelos gestores, aba separada logo
+   *  após "Acessos" (ver campaignPlanning.ts). */
+  campaignPlanning?: CampaignPlanning
   /** Which services this client has contracted — also drives which onboarding
    *  task templates get created (see onboardingTemplates.ts / paidTrafficTemplates.ts). */
   modules?: {

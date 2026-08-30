@@ -14,23 +14,6 @@ function emptyContact(): BriefingContact {
   return { id: crypto.randomUUID(), name: '', email: '', birthday: null }
 }
 
-export type MarketingObjective = 'vendas' | 'leads' | 'trafego' | 'seguidores'
-
-export const MARKETING_OBJECTIVE_LABEL: Record<MarketingObjective, string> = {
-  vendas: 'Vendas',
-  leads: 'Leads',
-  trafego: 'Tráfego',
-  seguidores: 'Seguidores',
-}
-
-export type PriceComparison = 'mais_caro' | 'na_media' | 'mais_barato'
-
-export const PRICE_COMPARISON_LABEL: Record<PriceComparison, string> = {
-  mais_caro: 'Mais caro',
-  na_media: 'Na média',
-  mais_barato: 'Mais barato',
-}
-
 export type CreditCardForAds = 'sim' | 'nao' | 'boleto'
 
 export const CREDIT_CARD_FOR_ADS_LABEL: Record<CreditCardForAds, string> = {
@@ -68,25 +51,13 @@ export interface PaidTrafficBriefing {
   desafiosAtuais?: string
 
   // Seção 3 — Marketing
-  objetivos: MarketingObjective[]
   resultadoEsperado?: string
-  regioesDirecionamento?: string
-  principaisProdutos?: string
   mesesMaisFortes?: string
   mesesMaisFracos?: string
   ticketMedio?: number
   faturamentoMensal?: number
   formasPagamento?: string
-  orcamentoMensalAnuncios?: number
   cartaoCreditoAnuncios?: CreditCardForAds
-  concorrente1?: string
-  concorrente2?: string
-  concorrente3?: string
-  diferencialVsConcorrentes?: string
-  pontoForte?: string
-  pontoFraco?: string
-  precoComparado?: PriceComparison
-  motivoComprarMesmoCaro?: string
 
   // Seção 4 — ICP B2C
   b2cGenero?: string
@@ -118,5 +89,4 @@ export const EMPTY_PAID_TRAFFIC_BRIEFING: PaidTrafficBriefing = {
   financeiro: [emptyContact()],
   marketing: [emptyContact()],
   comercial: [emptyContact()],
-  objetivos: [],
 }

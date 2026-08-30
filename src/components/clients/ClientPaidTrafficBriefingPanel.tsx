@@ -11,14 +11,10 @@ import { updateClient } from '../../services/clientService'
 import { markBriefingChecklistDone } from '../../services/taskService'
 import {
   EMPTY_PAID_TRAFFIC_BRIEFING,
-  MARKETING_OBJECTIVE_LABEL,
-  PRICE_COMPARISON_LABEL,
   CREDIT_CARD_FOR_ADS_LABEL,
   type Client,
   type PaidTrafficBriefing,
   type BriefingContact,
-  type MarketingObjective,
-  type PriceComparison,
   type CreditCardForAds,
 } from '../../types'
 
@@ -98,14 +94,6 @@ export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
 
   const set = <K extends keyof PaidTrafficBriefing>(key: K, value: PaidTrafficBriefing[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
-
-  const toggleObjective = (objective: MarketingObjective) =>
-    setForm((f) => ({
-      ...f,
-      objetivos: f.objetivos.includes(objective)
-        ? f.objetivos.filter((o) => o !== objective)
-        : [...f.objetivos, objective],
-    }))
 
   const handleSave = async () => {
     if (!profile) return
@@ -190,130 +178,51 @@ export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
 
       <div>
         <SectionTitle>3. Marketing</SectionTitle>
-        <div className="flex flex-col gap-3">
-          <div>
-            <span className="mb-1 block text-xs font-medium text-slate-500">Objetivos</span>
-            <div className="flex flex-wrap gap-3">
-              {(Object.entries(MARKETING_OBJECTIVE_LABEL) as [MarketingObjective, string][]).map(([value, label]) => (
-                <label key={value} className="flex items-center gap-1.5 text-sm text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={form.objetivos.includes(value)}
-                    onChange={() => toggleObjective(value)}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
-                  />
-                  {label}
-                </label>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label="O que espera como resultado?">
+              <Textarea rows={2} value={form.resultadoEsperado ?? ''} onChange={(e) => set('resultadoEsperado', e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Meses de maior movimento">
+            <Input value={form.mesesMaisFortes ?? ''} onChange={(e) => set('mesesMaisFortes', e.target.value)} />
+          </Field>
+          <Field label="Meses mais fracos">
+            <Input value={form.mesesMaisFracos ?? ''} onChange={(e) => set('mesesMaisFracos', e.target.value)} />
+          </Field>
+          <Field label="Ticket médio (R$)">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.ticketMedio ?? ''}
+              onChange={(e) => set('ticketMedio', toNumberOrUndefined(e.target.value))}
+            />
+          </Field>
+          <Field label="Faturamento mensal estimado (R$)">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.faturamentoMensal ?? ''}
+              onChange={(e) => set('faturamentoMensal', toNumberOrUndefined(e.target.value))}
+            />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Formas de pagamento aceitas">
+              <Input value={form.formasPagamento ?? ''} onChange={(e) => set('formasPagamento', e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Possui cartão de crédito para pagar anúncios?">
+            <Select value={form.cartaoCreditoAnuncios ?? ''} onChange={(e) => set('cartaoCreditoAnuncios', e.target.value as CreditCardForAds)}>
+              <option value="">Selecione...</option>
+              {(Object.entries(CREDIT_CARD_FOR_ADS_LABEL) as [CreditCardForAds, string][]).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
               ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Field label="O que espera como resultado?">
-                <Textarea rows={2} value={form.resultadoEsperado ?? ''} onChange={(e) => set('resultadoEsperado', e.target.value)} />
-              </Field>
-            </div>
-            <Field label="Regiões para direcionamento das campanhas">
-              <Input value={form.regioesDirecionamento ?? ''} onChange={(e) => set('regioesDirecionamento', e.target.value)} />
-            </Field>
-            <Field label="Principais produtos/serviços anunciados">
-              <Input value={form.principaisProdutos ?? ''} onChange={(e) => set('principaisProdutos', e.target.value)} />
-            </Field>
-            <Field label="Meses de maior movimento">
-              <Input value={form.mesesMaisFortes ?? ''} onChange={(e) => set('mesesMaisFortes', e.target.value)} />
-            </Field>
-            <Field label="Meses mais fracos">
-              <Input value={form.mesesMaisFracos ?? ''} onChange={(e) => set('mesesMaisFracos', e.target.value)} />
-            </Field>
-            <Field label="Ticket médio (R$)">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.ticketMedio ?? ''}
-                onChange={(e) => set('ticketMedio', toNumberOrUndefined(e.target.value))}
-              />
-            </Field>
-            <Field label="Faturamento mensal estimado (R$)">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.faturamentoMensal ?? ''}
-                onChange={(e) => set('faturamentoMensal', toNumberOrUndefined(e.target.value))}
-              />
-            </Field>
-            <div className="sm:col-span-2">
-              <Field label="Formas de pagamento aceitas">
-                <Input value={form.formasPagamento ?? ''} onChange={(e) => set('formasPagamento', e.target.value)} />
-              </Field>
-            </div>
-            <Field label="Orçamento mensal para anúncios (R$)">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.orcamentoMensalAnuncios ?? ''}
-                onChange={(e) => set('orcamentoMensalAnuncios', toNumberOrUndefined(e.target.value))}
-              />
-            </Field>
-            <Field label="Possui cartão de crédito para pagar anúncios?">
-              <Select value={form.cartaoCreditoAnuncios ?? ''} onChange={(e) => set('cartaoCreditoAnuncios', e.target.value as CreditCardForAds)}>
-                <option value="">Selecione...</option>
-                {(Object.entries(CREDIT_CARD_FOR_ADS_LABEL) as [CreditCardForAds, string][]).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Concorrente 1">
-              <Input value={form.concorrente1 ?? ''} onChange={(e) => set('concorrente1', e.target.value)} />
-            </Field>
-            <Field label="Concorrente 2">
-              <Input value={form.concorrente2 ?? ''} onChange={(e) => set('concorrente2', e.target.value)} />
-            </Field>
-            <Field label="Concorrente 3">
-              <Input value={form.concorrente3 ?? ''} onChange={(e) => set('concorrente3', e.target.value)} />
-            </Field>
-            <div />
-            <div className="sm:col-span-2">
-              <Field label="O que oferece que concorrentes NÃO oferecem?">
-                <Textarea
-                  rows={2}
-                  value={form.diferencialVsConcorrentes ?? ''}
-                  onChange={(e) => set('diferencialVsConcorrentes', e.target.value)}
-                />
-              </Field>
-            </div>
-            <Field label="Ponto forte">
-              <Textarea rows={2} value={form.pontoForte ?? ''} onChange={(e) => set('pontoForte', e.target.value)} />
-            </Field>
-            <Field label="Ponto fraco">
-              <Textarea rows={2} value={form.pontoFraco ?? ''} onChange={(e) => set('pontoFraco', e.target.value)} />
-            </Field>
-            <Field label="Posicionamento de preço">
-              <Select value={form.precoComparado ?? ''} onChange={(e) => set('precoComparado', e.target.value as PriceComparison)}>
-                <option value="">Selecione...</option>
-                {(Object.entries(PRICE_COMPARISON_LABEL) as [PriceComparison, string][]).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <div />
-            <div className="sm:col-span-2">
-              <Field label="Por que comprar mesmo assim?">
-                <Textarea
-                  rows={2}
-                  value={form.motivoComprarMesmoCaro ?? ''}
-                  onChange={(e) => set('motivoComprarMesmoCaro', e.target.value)}
-                />
-              </Field>
-            </div>
-          </div>
+            </Select>
+          </Field>
         </div>
       </div>
 
