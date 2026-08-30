@@ -14,6 +14,7 @@ export type ContentStatus =
   | 'approved'
   | 'scheduled'
   | 'published'
+  | 'cancelled'
 
 /** Recurring content themes used to plan and balance the weekly/monthly
  *  editorial grade (see the Social Media playbook — Roteiro Semanal/Mensal). */
@@ -34,6 +35,8 @@ export interface Content extends BaseDoc {
   scheduledDate?: Timestamp | null
   scheduledTime?: string // "HH:mm", kept separate from date for quick editing
   assignedTo?: string
+  canvaLink?: string
+  notes?: string
   status: ContentStatus
   order: number
   /** Set when an internal user generates a public approval link. Non-null =
@@ -47,13 +50,14 @@ export interface Content extends BaseDoc {
 }
 
 export const CONTENT_STATUS_LABEL: Record<ContentStatus, string> = {
-  ideas: 'Ideias',
-  production: 'Produção',
+  ideas: 'Produzir',
+  production: 'Em Produção',
   review: 'Revisão',
   waiting_client: 'Aguardando Cliente',
   approved: 'Aprovado',
   scheduled: 'Agendado',
   published: 'Publicado',
+  cancelled: 'Cancelado',
 }
 
 export const CONTENT_STATUS_ORDER: ContentStatus[] = [
@@ -64,6 +68,7 @@ export const CONTENT_STATUS_ORDER: ContentStatus[] = [
   'approved',
   'scheduled',
   'published',
+  'cancelled',
 ]
 
 export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
@@ -73,6 +78,15 @@ export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
   story: 'Story',
   video: 'Vídeo',
   other: 'Outro',
+}
+
+/** Shorter aliases for the 3 formats offered when criando conteúdo (campo
+ *  "Formato") and shown no card do Kanban — mesmos valores de ContentType,
+ *  só a palavra muda. */
+export const CONTENT_FORMAT_LABEL: Partial<Record<ContentType, string>> = {
+  post: 'Post',
+  reels: 'Reel',
+  story: 'Stories',
 }
 
 export const CONTENT_PLATFORM_LABEL: Record<ContentPlatform, string> = {
@@ -87,6 +101,6 @@ export const CONTENT_PILLAR_LABEL: Record<ContentPillar, string> = {
   dor_solucao: 'Dor / Solução',
   autoridade: 'Autoridade',
   prova_social: 'Prova Social',
-  educativo: 'Educativo',
   bastidores: 'Bastidores',
+  educativo: 'Educativo',
 }

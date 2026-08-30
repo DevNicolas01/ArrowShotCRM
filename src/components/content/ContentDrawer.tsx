@@ -231,7 +231,22 @@ export function ContentDrawer({ content, onClose }: { content: Content | null; o
               }}
             />
           </Field>
+          <Field label="Link do Canva">
+            <Input
+              defaultValue={content.canvaLink ?? ''}
+              placeholder="https://canva.com/..."
+              onBlur={(e) => e.target.value !== (content.canvaLink ?? '') && save({ canvaLink: e.target.value })}
+            />
+          </Field>
         </div>
+
+        <Field label="Observações">
+          <Textarea
+            rows={2}
+            defaultValue={content.notes ?? ''}
+            onBlur={(e) => e.target.value !== (content.notes ?? '') && save({ notes: e.target.value })}
+          />
+        </Field>
 
         <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Link de aprovação do cliente</p>

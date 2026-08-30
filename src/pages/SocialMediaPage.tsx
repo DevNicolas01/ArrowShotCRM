@@ -11,7 +11,14 @@ import { ContentFormModal } from '../components/content/ContentFormModal'
 import { GeneratePautaModal } from '../components/content/GeneratePautaModal'
 import { Button } from '../components/ui/Button'
 import { moveContentStatus } from '../services/contentService'
-import { CONTENT_STATUS_LABEL, CONTENT_STATUS_ORDER, type Content, type ContentStatus } from '../types/content'
+import {
+  CONTENT_STATUS_LABEL,
+  CONTENT_STATUS_ORDER,
+  CONTENT_FORMAT_LABEL,
+  type Content,
+  type ContentStatus,
+  type ContentType,
+} from '../types/content'
 
 const ACCENTS: Record<ContentStatus, string> = {
   ideas: 'bg-slate-400',
@@ -21,7 +28,10 @@ const ACCENTS: Record<ContentStatus, string> = {
   approved: 'bg-teal-500',
   scheduled: 'bg-indigo-500',
   published: 'bg-emerald-500',
+  cancelled: 'bg-red-400',
 }
+
+const FORMAT_FILTER_OPTIONS: ContentType[] = ['post', 'reels', 'story']
 
 export function SocialMediaPage() {
   const { profile } = useAuth()
@@ -32,11 +42,18 @@ export function SocialMediaPage() {
   const [creating, setCreating] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [clientFilter, setClientFilter] = useState('')
+  const [assigneeFilter, setAssigneeFilter] = useState('')
+  const [formatFilter, setFormatFilter] = useState('')
 
   const openContent = contents.find((c) => c.id === openContentId) ?? null
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c]))
   const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
-  const visibleContents = clientFilter ? contents.filter((c) => c.clientId === clientFilter) : contents
+  const visibleContents = contents.filter((c) => {
+    if (clientFilter && c.clientId !== clientFilter) return false
+    if (assigneeFilter && c.assignedTo !== assigneeFilter) return false
+    if (formatFilter && c.type !== formatFilter) return false
+    return true
+  })
 
   const columns = CONTENT_STATUS_ORDER.map((s) => ({ id: s, label: CONTENT_STATUS_LABEL[s], accent: ACCENTS[s] }))
 
@@ -56,6 +73,26 @@ export function SocialMediaPage() {
             <option value="">Todos os clientes</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.companyName}</option>
+            ))}
+          </select>
+          <select
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+          >
+            <option value="">Todos os responsáveis</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+          <select
+            value={formatFilter}
+            onChange={(e) => setFormatFilter(e.target.value)}
+            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+          >
+            <option value="">Todos os formatos</option>
+            {FORMAT_FILTER_OPTIONS.map((t) => (
+              <option key={t} value={t}>{CONTENT_FORMAT_LABEL[t]}</option>
             ))}
           </select>
           <Button variant="secondary" icon={<Sparkles size={14} />} onClick={() => setGenerating(true)}>

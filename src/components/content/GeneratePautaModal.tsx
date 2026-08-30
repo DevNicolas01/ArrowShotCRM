@@ -40,7 +40,7 @@ export function GeneratePautaModal({ open, onClose }: { open: boolean; onClose: 
         pkg === 'weekly'
           ? await generateWeeklyPauta(clientId, date, profile.id, profile.name)
           : await generateMonthlyPauta(clientId, date, profile.id, profile.name)
-      toast.success(`${count} conteúdos criados na coluna Ideias`)
+      toast.success(`${count} conteúdos criados na coluna Produzir`)
       onClose()
     } catch (err) {
       console.error(err)
@@ -54,7 +54,7 @@ export function GeneratePautaModal({ open, onClose }: { open: boolean; onClose: 
     <Modal open={open} onClose={onClose} title="Gerar pauta">
       <div className="flex flex-col gap-3">
         <p className="text-xs text-slate-500">
-          Cria os conteúdos da semana (ou dos 4 blocos do mês) direto na coluna "Ideias", já com pilar, formato e
+          Cria os conteúdos da semana (ou dos 4 blocos do mês) direto na coluna "Produzir", já com pilar, formato e
           legenda-base preenchidos conforme o roteiro padrão da Arrow Shot.
         </p>
 
