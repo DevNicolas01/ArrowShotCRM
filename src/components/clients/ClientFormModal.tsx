@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useUsers } from '../../hooks/useUsers'
 import { createClient, updateClient } from '../../services/clientService'
 import { createOnboardingTasks } from '../../services/onboardingTemplates'
-import { createPaidTrafficTasks } from '../../services/paidTrafficTemplates'
+import { createPaidTrafficTasks, createSharedOnboardingTasks } from '../../services/paidTrafficTemplates'
 import {
   CLIENT_PACKAGE_LABEL,
   CLIENT_STATUS_LABEL,
@@ -107,7 +107,9 @@ export function ClientFormModal({
 
   const autoTaskSummary = [
     form.socialMedia && 'Social Media: Ativação + Materiais',
-    form.paidTraffic && 'Tráfego Pago: Onboarding, Briefing e Acessos, Planejamento de Campanhas + recorrentes',
+    form.paidTraffic
+      ? 'Onboarding, Briefing e Acessos, Planejamento de Campanhas + recorrentes (Gestor de Tráfego e CS)'
+      : form.socialMedia && 'Onboarding + CS Semanal + CS Mensal',
   ]
     .filter(Boolean)
     .join('; ')
@@ -149,12 +151,13 @@ export function ClientFormModal({
         const newClientId = await createClient(payload, profile.id, profile.name)
         if (createTasks) {
           const newClient = { id: newClientId, companyName: payload.companyName }
-          const trafficOwnerId = form.ownerIds[0] ?? profile.id
           if (form.socialMedia) {
             await createOnboardingTasks(newClient, profile.id, profile.name)
           }
           if (form.paidTraffic) {
-            await createPaidTrafficTasks(newClient, profile.id, profile.name, trafficOwnerId)
+            await createPaidTrafficTasks(newClient, profile.id, profile.name, users)
+          } else if (form.socialMedia) {
+            await createSharedOnboardingTasks(newClient, profile.id, profile.name, users)
           }
         }
         toast.success('Cliente cadastrado')
