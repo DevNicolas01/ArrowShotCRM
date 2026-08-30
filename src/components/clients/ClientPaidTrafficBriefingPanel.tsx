@@ -10,14 +10,15 @@ import { useAuth } from '../../context/AuthContext'
 import { updateClient } from '../../services/clientService'
 import { markBriefingChecklistDone } from '../../services/taskService'
 import {
-  EMPTY_COMMERCIAL_BRIEFING,
+  EMPTY_PAID_TRAFFIC_BRIEFING,
   MARKETING_OBJECTIVE_LABEL,
   PRICE_COMPARISON_LABEL,
   CREDIT_CARD_FOR_ADS_LABEL,
   type Client,
-  type CommercialBriefing,
+  type PaidTrafficBriefing,
   type BriefingContact,
   type BriefingAccess,
+  type BriefingAccessItem,
   type MarketingObjective,
   type PriceComparison,
   type CreditCardForAds,
@@ -89,25 +90,48 @@ function ContactListField({
   )
 }
 
-const ACCESS_CHECKBOXES: { key: keyof BriefingAccess; label: string }[] = [
-  { key: 'agenciaNasContasDeAnuncios', label: 'Usuário da agência adicionado nas contas de anúncios' },
-  { key: 'instagram', label: 'Acesso ao Instagram' },
-  { key: 'facebookPagina', label: 'Acesso à página do Facebook' },
-  { key: 'analytics', label: 'Acesso ao Analytics' },
-  { key: 'gtm', label: 'Acesso ao GTM' },
-  { key: 'googleMeuNegocio', label: 'Acesso ao Google Meu Negócio' },
-]
+function AccessCheckbox({
+  label,
+  item,
+  onChange,
+}: {
+  label: string
+  item: BriefingAccessItem
+  onChange: (item: BriefingAccessItem) => void
+}) {
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm text-slate-600">
+        <input
+          type="checkbox"
+          checked={item.checked}
+          onChange={(e) => onChange({ ...item, checked: e.target.checked })}
+          className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+        />
+        {label}
+      </label>
+      {item.checked && (
+        <input
+          value={item.link ?? ''}
+          onChange={(e) => onChange({ ...item, link: e.target.value })}
+          placeholder="Link (opcional)"
+          className="mt-1 ml-5.5 w-[calc(100%-1.4rem)] rounded-md border border-slate-200 px-2 py-1 text-xs outline-none placeholder:text-slate-400 focus:border-brand-400"
+        />
+      )}
+    </div>
+  )
+}
 
-export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
+export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
   const { profile } = useAuth()
-  const [form, setForm] = useState<CommercialBriefing>(client.commercialBriefing ?? EMPTY_COMMERCIAL_BRIEFING)
+  const [form, setForm] = useState<PaidTrafficBriefing>(client.paidTrafficBriefing ?? EMPTY_PAID_TRAFFIC_BRIEFING)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    setForm(client.commercialBriefing ?? EMPTY_COMMERCIAL_BRIEFING)
-  }, [client.id, client.commercialBriefing])
+    setForm(client.paidTrafficBriefing ?? EMPTY_PAID_TRAFFIC_BRIEFING)
+  }, [client.id, client.paidTrafficBriefing])
 
-  const set = <K extends keyof CommercialBriefing>(key: K, value: CommercialBriefing[K]) =>
+  const set = <K extends keyof PaidTrafficBriefing>(key: K, value: PaidTrafficBriefing[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
 
   const setAccess = <K extends keyof BriefingAccess>(key: K, value: BriefingAccess[K]) =>
@@ -125,8 +149,8 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
     if (!profile) return
     setSaving(true)
     try {
-      const payload: CommercialBriefing = { ...form, filledAt: Timestamp.now() }
-      await updateClient(client.id, { commercialBriefing: payload }, profile.id, profile.name)
+      const payload: PaidTrafficBriefing = { ...form, filledAt: Timestamp.now() }
+      await updateClient(client.id, { paidTrafficBriefing: payload }, profile.id, profile.name)
       await markBriefingChecklistDone(client.id, profile.id, profile.name)
       toast.success('Briefing salvo')
     } catch (err) {
@@ -137,7 +161,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
     }
   }
 
-  const lastFilled = client.commercialBriefing?.filledAt
+  const lastFilled = client.paidTrafficBriefing?.filledAt
 
   return (
     <div className="flex flex-col gap-5">
@@ -146,39 +170,18 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
         {lastFilled && (
           <>
             {' '}
-            Última vez salvo por <strong>{client.commercialBriefing?.preenchidoPor}</strong> em{' '}
+            Última vez salvo por <strong>{client.paidTrafficBriefing?.preenchidoPor}</strong> em{' '}
             {format(lastFilled.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.
           </>
         )}
       </p>
 
       <Field label="Preenchido por">
-        <Input value={form.preenchidoPor} onChange={(e) => set('preenchidoPor', e.target.value)} placeholder="Ex: Jamilson" />
+        <Input value={form.preenchidoPor} onChange={(e) => set('preenchidoPor', e.target.value)} placeholder="Ex: Janilson" />
       </Field>
 
       <div>
-        <SectionTitle>1. Dados básicos</SectionTitle>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="CNPJ">
-            <Input value={form.cnpj ?? ''} onChange={(e) => set('cnpj', e.target.value)} />
-          </Field>
-          <Field label="Site">
-            <Input value={form.site ?? ''} onChange={(e) => set('site', e.target.value)} />
-          </Field>
-          <Field label="Instagram">
-            <Input value={form.instagram ?? ''} onChange={(e) => set('instagram', e.target.value)} placeholder="@usuario" />
-          </Field>
-          <Field label="Página do Facebook">
-            <Input value={form.facebookPagina ?? ''} onChange={(e) => set('facebookPagina', e.target.value)} />
-          </Field>
-          <Field label="Canal no YouTube">
-            <Input value={form.youtube ?? ''} onChange={(e) => set('youtube', e.target.value)} />
-          </Field>
-        </div>
-      </div>
-
-      <div>
-        <SectionTitle>2. Responsáveis</SectionTitle>
+        <SectionTitle>1. Responsáveis</SectionTitle>
         <div className="flex flex-col gap-2.5">
           <ContactListField label="Sócio/Diretor" contacts={form.socios} onChange={(v) => set('socios', v)} />
           <ContactListField label="Tomador de decisões" contacts={form.decisores} onChange={(v) => set('decisores', v)} />
@@ -194,57 +197,65 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>3. Acessos</SectionTitle>
-        <div className="flex flex-col gap-1.5">
-          {ACCESS_CHECKBOXES.map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-2 text-sm text-slate-600">
-              <input
-                type="checkbox"
-                checked={form.acessos[key] as boolean}
-                onChange={(e) => setAccess(key, e.target.checked as BriefingAccess[typeof key])}
-                className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
-              />
-              {label}
-            </label>
-          ))}
+        <SectionTitle>2. Acessos</SectionTitle>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={form.acessos.agenciaNasContasDeAnuncios}
+              onChange={(e) => setAccess('agenciaNasContasDeAnuncios', e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+            />
+            Usuário da agência adicionado nas contas de anúncios
+          </label>
+          <AccessCheckbox label="Acesso ao Instagram" item={form.acessos.instagram} onChange={(v) => setAccess('instagram', v)} />
+          <AccessCheckbox
+            label="Acesso à página do Facebook"
+            item={form.acessos.facebookPagina}
+            onChange={(v) => setAccess('facebookPagina', v)}
+          />
+          <AccessCheckbox label="Acesso ao Analytics" item={form.acessos.analytics} onChange={(v) => setAccess('analytics', v)} />
+          <AccessCheckbox label="Acesso ao GTM" item={form.acessos.gtm} onChange={(v) => setAccess('gtm', v)} />
+          <AccessCheckbox
+            label="Acesso ao Google Meu Negócio"
+            item={form.acessos.googleMeuNegocio}
+            onChange={(v) => setAccess('googleMeuNegocio', v)}
+          />
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <Field label="Link da pasta Drive com materiais da empresa">
+            <Field label="Link da pasta Drive com materiais">
               <Input value={form.acessos.linkDrive ?? ''} onChange={(e) => setAccess('linkDrive', e.target.value)} />
             </Field>
           </div>
-          <Field label="Telefone fixo">
-            <Input value={form.acessos.telefoneFixo ?? ''} onChange={(e) => setAccess('telefoneFixo', e.target.value)} />
-          </Field>
           <Field label="WhatsApp para campanhas">
             <Input value={form.acessos.whatsappCampanhas ?? ''} onChange={(e) => setAccess('whatsappCampanhas', e.target.value)} />
+          </Field>
+          <Field label="Telefone fixo">
+            <Input value={form.acessos.telefoneFixo ?? ''} onChange={(e) => setAccess('telefoneFixo', e.target.value)} />
           </Field>
         </div>
       </div>
 
       <div>
-        <SectionTitle>4. Comercial</SectionTitle>
+        <SectionTitle>3. Comercial</SectionTitle>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Como o time está estruturado?">
+          <Field label="Como o time comercial está estruturado">
             <Textarea rows={2} value={form.estruturaTime ?? ''} onChange={(e) => set('estruturaTime', e.target.value)} />
           </Field>
-          <Field label="Como funciona o processo de vendas?">
+          <Field label="Como funciona o processo de vendas">
             <Textarea rows={2} value={form.processoVendas ?? ''} onChange={(e) => set('processoVendas', e.target.value)} />
           </Field>
-          <Field label="Qual sistema usa para gestão de leads?">
+          <Field label="Sistema usado para gestão de leads">
             <Input value={form.sistemaGestaoLeads ?? ''} onChange={(e) => set('sistemaGestaoLeads', e.target.value)} />
           </Field>
-          <Field label="Há quanto tempo usa esse sistema?">
-            <Input value={form.tempoUsoSistema ?? ''} onChange={(e) => set('tempoUsoSistema', e.target.value)} />
-          </Field>
-          <Field label="Qual o ciclo de venda?">
+          <Field label="Ciclo de venda">
             <Input value={form.cicloVenda ?? ''} onChange={(e) => set('cicloVenda', e.target.value)} />
           </Field>
-          <Field label="Qual o canal que mais vende?">
+          <Field label="Canal que mais vende">
             <Input value={form.canalQueMaisVende ?? ''} onChange={(e) => set('canalQueMaisVende', e.target.value)} />
           </Field>
-          <Field label="Quanto tempo a empresa está no mercado?">
+          <Field label="Tempo de mercado da empresa">
             <Input value={form.tempoDeMercado ?? ''} onChange={(e) => set('tempoDeMercado', e.target.value)} />
           </Field>
           <div className="sm:col-span-2">
@@ -253,7 +264,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
             </Field>
           </div>
           <div className="sm:col-span-2">
-            <Field label="Quais são os desafios atuais?">
+            <Field label="Desafios atuais">
               <Textarea rows={2} value={form.desafiosAtuais ?? ''} onChange={(e) => set('desafiosAtuais', e.target.value)} />
             </Field>
           </div>
@@ -261,7 +272,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>5. Marketing e desenvolvimento</SectionTitle>
+        <SectionTitle>4. Marketing</SectionTitle>
         <div className="flex flex-col gap-3">
           <div>
             <span className="mb-1 block text-xs font-medium text-slate-500">Objetivos</span>
@@ -286,17 +297,18 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
                 <Textarea rows={2} value={form.resultadoEsperado ?? ''} onChange={(e) => set('resultadoEsperado', e.target.value)} />
               </Field>
             </div>
-            <Field label="Endereço para direcionamento da campanha">
-              <Input value={form.enderecoDirecionamento ?? ''} onChange={(e) => set('enderecoDirecionamento', e.target.value)} />
+            <Field label="Regiões para direcionamento das campanhas">
+              <Input value={form.regioesDirecionamento ?? ''} onChange={(e) => set('regioesDirecionamento', e.target.value)} />
             </Field>
-            <Field label="Principais produtos/serviços">
+            <Field label="Principais produtos/serviços anunciados">
               <Input value={form.principaisProdutos ?? ''} onChange={(e) => set('principaisProdutos', e.target.value)} />
             </Field>
-            <div className="sm:col-span-2">
-              <Field label="Períodos de sazonalidade (melhores e piores meses)">
-                <Textarea rows={2} value={form.sazonalidade ?? ''} onChange={(e) => set('sazonalidade', e.target.value)} />
-              </Field>
-            </div>
+            <Field label="Meses de maior movimento">
+              <Input value={form.mesesMaisFortes ?? ''} onChange={(e) => set('mesesMaisFortes', e.target.value)} />
+            </Field>
+            <Field label="Meses mais fracos">
+              <Input value={form.mesesMaisFracos ?? ''} onChange={(e) => set('mesesMaisFracos', e.target.value)} />
+            </Field>
             <Field label="Ticket médio (R$)">
               <Input
                 type="number"
@@ -306,6 +318,20 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
                 onChange={(e) => set('ticketMedio', toNumberOrUndefined(e.target.value))}
               />
             </Field>
+            <Field label="Faturamento mensal estimado (R$)">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.faturamentoMensal ?? ''}
+                onChange={(e) => set('faturamentoMensal', toNumberOrUndefined(e.target.value))}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Formas de pagamento aceitas">
+                <Input value={form.formasPagamento ?? ''} onChange={(e) => set('formasPagamento', e.target.value)} />
+              </Field>
+            </div>
             <Field label="Orçamento mensal para anúncios (R$)">
               <Input
                 type="number"
@@ -315,29 +341,16 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
                 onChange={(e) => set('orcamentoMensalAnuncios', toNumberOrUndefined(e.target.value))}
               />
             </Field>
-            <Field label="Faturamento mensal (R$)">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.faturamentoMensal ?? ''}
-                onChange={(e) => set('faturamentoMensal', toNumberOrUndefined(e.target.value))}
-              />
+            <Field label="Possui cartão de crédito para pagar anúncios?">
+              <Select value={form.cartaoCreditoAnuncios ?? ''} onChange={(e) => set('cartaoCreditoAnuncios', e.target.value as CreditCardForAds)}>
+                <option value="">Selecione...</option>
+                {(Object.entries(CREDIT_CARD_FOR_ADS_LABEL) as [CreditCardForAds, string][]).map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </Select>
             </Field>
-            <Field label="Faturamento anual (R$)">
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.faturamentoAnual ?? ''}
-                onChange={(e) => set('faturamentoAnual', toNumberOrUndefined(e.target.value))}
-              />
-            </Field>
-            <div className="sm:col-span-2">
-              <Field label="Formas de pagamento">
-                <Input value={form.formasPagamento ?? ''} onChange={(e) => set('formasPagamento', e.target.value)} />
-              </Field>
-            </div>
             <Field label="Concorrente 1">
               <Input value={form.concorrente1 ?? ''} onChange={(e) => set('concorrente1', e.target.value)} />
             </Field>
@@ -363,7 +376,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
             <Field label="Ponto fraco">
               <Textarea rows={2} value={form.pontoFraco ?? ''} onChange={(e) => set('pontoFraco', e.target.value)} />
             </Field>
-            <Field label="Preço em relação aos concorrentes">
+            <Field label="Posicionamento de preço">
               <Select value={form.precoComparado ?? ''} onChange={(e) => set('precoComparado', e.target.value as PriceComparison)}>
                 <option value="">Selecione...</option>
                 {(Object.entries(PRICE_COMPARISON_LABEL) as [PriceComparison, string][]).map(([v, l]) => (
@@ -373,18 +386,9 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
                 ))}
               </Select>
             </Field>
-            <Field label="Possui cartão de crédito para pagar anúncios?">
-              <Select value={form.cartaoCreditoAnuncios ?? ''} onChange={(e) => set('cartaoCreditoAnuncios', e.target.value as CreditCardForAds)}>
-                <option value="">Selecione...</option>
-                {(Object.entries(CREDIT_CARD_FOR_ADS_LABEL) as [CreditCardForAds, string][]).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <div />
             <div className="sm:col-span-2">
-              <Field label="Por que comprar mesmo sendo igual ou mais caro?">
+              <Field label="Por que comprar mesmo assim?">
                 <Textarea
                   rows={2}
                   value={form.motivoComprarMesmoCaro ?? ''}
@@ -397,7 +401,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>6. Perfil do cliente ideal — B2C</SectionTitle>
+        <SectionTitle>5. Perfil do cliente ideal — B2C</SectionTitle>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Gênero">
             <Input value={form.b2cGenero ?? ''} onChange={(e) => set('b2cGenero', e.target.value)} />
@@ -405,19 +409,19 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
           <Field label="Estado civil e filhos">
             <Input value={form.b2cEstadoCivilFilhos ?? ''} onChange={(e) => set('b2cEstadoCivilFilhos', e.target.value)} />
           </Field>
-          <Field label="Idade">
-            <Input value={form.b2cIdade ?? ''} onChange={(e) => set('b2cIdade', e.target.value)} />
+          <Field label="Faixa etária">
+            <Input value={form.b2cFaixaEtaria ?? ''} onChange={(e) => set('b2cFaixaEtaria', e.target.value)} />
           </Field>
           <Field label="Escolaridade e profissão">
             <Input value={form.b2cEscolaridadeProfissao ?? ''} onChange={(e) => set('b2cEscolaridadeProfissao', e.target.value)} />
           </Field>
-          <Field label="Onde mora/região">
+          <Field label="Região onde mora">
             <Input value={form.b2cRegiao ?? ''} onChange={(e) => set('b2cRegiao', e.target.value)} />
           </Field>
           <div />
           <div className="sm:col-span-2">
-            <Field label="Dor latente da persona">
-              <Textarea rows={2} value={form.b2cDorLatente ?? ''} onChange={(e) => set('b2cDorLatente', e.target.value)} />
+            <Field label="Dor principal antes de contratar">
+              <Textarea rows={2} value={form.b2cDorPrincipal ?? ''} onChange={(e) => set('b2cDorPrincipal', e.target.value)} />
             </Field>
           </div>
           <div className="sm:col-span-2">
@@ -429,7 +433,7 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>7. Perfil do cliente ideal — B2B</SectionTitle>
+        <SectionTitle>6. Perfil do cliente ideal — B2B</SectionTitle>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Setor">
             <Input value={form.b2bSetor ?? ''} onChange={(e) => set('b2bSetor', e.target.value)} />
@@ -458,12 +462,17 @@ export function ClientCommercialBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>8. Palavras-chave</SectionTitle>
-        <Textarea rows={3} value={form.palavrasChave ?? ''} onChange={(e) => set('palavrasChave', e.target.value)} placeholder="Liste as principais palavras-chave, separadas por vírgula" />
+        <SectionTitle>7. Palavras-chave</SectionTitle>
+        <Textarea
+          rows={3}
+          value={form.palavrasChave ?? ''}
+          onChange={(e) => set('palavrasChave', e.target.value)}
+          placeholder="Liste as principais palavras-chave, separadas por vírgula"
+        />
       </div>
 
       <div>
-        <SectionTitle>9. Observações gerais</SectionTitle>
+        <SectionTitle>8. Observações gerais</SectionTitle>
         <Textarea rows={3} value={form.observacoes ?? ''} onChange={(e) => set('observacoes', e.target.value)} />
       </div>
 

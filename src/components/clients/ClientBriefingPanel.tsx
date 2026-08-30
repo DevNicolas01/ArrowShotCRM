@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
 import toast from 'react-hot-toast'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Save } from 'lucide-react'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 import { updateClient } from '../../services/clientService'
+import { markBriefingChecklistDone } from '../../services/taskService'
 import {
   APPROVAL_CHANNEL_LABEL,
   CLIENT_AUDIENCE_LABEL,
@@ -14,7 +17,7 @@ import {
   type ClientBriefing,
 } from '../../types/client'
 
-const EMPTY: ClientBriefing = {}
+const EMPTY: ClientBriefing = { preenchidoPor: 'Janilson' }
 
 function toDateInputValue(ts?: Timestamp | null) {
   if (!ts) return ''
@@ -41,7 +44,9 @@ export function ClientBriefingPanel({ client }: { client: Client }) {
     if (!profile) return
     setSaving(true)
     try {
-      await updateClient(client.id, { briefing: form }, profile.id, profile.name)
+      const payload: ClientBriefing = { ...form, filledAt: Timestamp.now() }
+      await updateClient(client.id, { briefing: payload }, profile.id, profile.name)
+      await markBriefingChecklistDone(client.id, profile.id, profile.name)
       toast.success('Briefing salvo')
     } catch (err) {
       console.error(err)
@@ -51,12 +56,25 @@ export function ClientBriefingPanel({ client }: { client: Client }) {
     }
   }
 
+  const lastFilled = client.briefing?.filledAt
+
   return (
     <div className="flex flex-col gap-5">
       <p className="text-xs text-slate-400">
         Preencher na reunião de onboarding. Os dados de empresa, WhatsApp, cidade, pacote e catálogo já ficam no
         cadastro do cliente — aqui só o que é específico do briefing.
+        {lastFilled && (
+          <>
+            {' '}
+            Última vez salvo por <strong>{client.briefing?.preenchidoPor}</strong> em{' '}
+            {format(lastFilled.toDate(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.
+          </>
+        )}
       </p>
+
+      <Field label="Preenchido por">
+        <Input value={form.preenchidoPor ?? ''} onChange={(e) => set('preenchidoPor', e.target.value)} placeholder="Ex: Janilson" />
+      </Field>
 
       <div>
         <SectionTitle>Informações da empresa</SectionTitle>

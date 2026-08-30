@@ -8,8 +8,7 @@ import { useTasks } from '../hooks/useTasks'
 import { useContents } from '../hooks/useContents'
 import { useUsers } from '../hooks/useUsers'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
-import { ClientBriefingPanel } from '../components/clients/ClientBriefingPanel'
-import { ClientCommercialBriefingPanel } from '../components/clients/ClientCommercialBriefingPanel'
+import { ClientBriefingTab } from '../components/clients/ClientBriefingTab'
 import { ClientLogoUpload } from '../components/clients/ClientLogoUpload'
 import { Badge } from '../components/ui/Badge'
 import { Avatar } from '../components/ui/Avatar'
@@ -104,8 +103,7 @@ export function ClientDetailPage() {
       <div className="rounded-xl border border-slate-100 bg-white">
         <Tabs
           tabs={[
-            { label: 'Briefing', content: <ClientBriefingPanel client={client} /> },
-            { label: 'Briefing Comercial', content: <ClientCommercialBriefingPanel client={client} /> },
+            { label: 'Briefing', content: <ClientBriefingTab client={client} /> },
             {
               label: 'Tarefas',
               content: (

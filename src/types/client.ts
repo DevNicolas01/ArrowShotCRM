@@ -1,6 +1,6 @@
 import type { Timestamp } from 'firebase/firestore'
 import type { BaseDoc } from './common'
-import type { CommercialBriefing } from './commercialBriefing'
+import type { PaidTrafficBriefing } from './paidTrafficBriefing'
 
 export type ClientStatus = 'active' | 'paused' | 'churned' | 'prospect'
 
@@ -38,6 +38,8 @@ export interface ClientBriefing {
   dataInicio?: Timestamp | null
   canalAprovacao?: ApprovalChannel
   prazoAprovacao?: string
+  preenchidoPor?: string
+  filledAt?: Timestamp | null
 }
 
 export interface Client extends BaseDoc {
@@ -66,10 +68,11 @@ export interface Client extends BaseDoc {
   contractStartDate?: Timestamp | null
   notes?: string
   logoUrl?: string
+  /** Briefing de Social Media. */
   briefing?: ClientBriefing
-  /** Full CS/comercial onboarding briefing — separate tab and schema from the
-   *  shorter Social Media `briefing` above (see commercialBriefing.ts). */
-  commercialBriefing?: CommercialBriefing
+  /** Briefing de Tráfego Pago — separate schema, shown as a sub-tab of
+   *  "Briefing" alongside the Social Media one (see paidTrafficBriefing.ts). */
+  paidTrafficBriefing?: PaidTrafficBriefing
   /** Which services this client has contracted — also drives which onboarding
    *  task templates get created (see onboardingTemplates.ts / paidTrafficTemplates.ts). */
   modules?: {
