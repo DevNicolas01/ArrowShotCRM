@@ -9,6 +9,7 @@ import { useContents } from '../hooks/useContents'
 import { useUsers } from '../hooks/useUsers'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 import { ClientBriefingTab } from '../components/clients/ClientBriefingTab'
+import { ClientAccessPanel } from '../components/clients/ClientAccessPanel'
 import { ClientLogoUpload } from '../components/clients/ClientLogoUpload'
 import { Badge } from '../components/ui/Badge'
 import { Avatar } from '../components/ui/Avatar'
@@ -104,6 +105,7 @@ export function ClientDetailPage() {
         <Tabs
           tabs={[
             { label: 'Briefing', content: <ClientBriefingTab client={client} /> },
+            { label: 'Acessos', content: <ClientAccessPanel client={client} /> },
             {
               label: 'Tarefas',
               content: (

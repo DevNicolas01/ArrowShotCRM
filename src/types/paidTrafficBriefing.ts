@@ -1,7 +1,8 @@
 import type { Timestamp } from 'firebase/firestore'
 
 /** One person tied to a responsibility role (seção 1). A role can have more
- *  than one contact (ex: dois sócios). */
+ *  than one contact (ex: dois sócios) — the first one is always shown, extra
+ *  ones only appear via "Adicionar outro". */
 export interface BriefingContact {
   id: string
   name: string
@@ -9,27 +10,8 @@ export interface BriefingContact {
   birthday?: Timestamp | null
 }
 
-/** A Sim/Não access checkbox that also takes a link when it's checked
- *  (ex: link do perfil do Instagram, do container do GTM). */
-export interface BriefingAccessItem {
-  checked: boolean
-  link?: string
-}
-
-function emptyAccessItem(): BriefingAccessItem {
-  return { checked: false }
-}
-
-export interface BriefingAccess {
-  agenciaNasContasDeAnuncios: boolean
-  instagram: BriefingAccessItem
-  facebookPagina: BriefingAccessItem
-  analytics: BriefingAccessItem
-  gtm: BriefingAccessItem
-  googleMeuNegocio: BriefingAccessItem
-  linkDrive?: string
-  whatsappCampanhas?: string
-  telefoneFixo?: string
+function emptyContact(): BriefingContact {
+  return { id: crypto.randomUUID(), name: '', email: '', birthday: null }
 }
 
 export type MarketingObjective = 'vendas' | 'leads' | 'trafego' | 'seguidores'
@@ -57,11 +39,14 @@ export const CREDIT_CARD_FOR_ADS_LABEL: Record<CreditCardForAds, string> = {
   boleto: 'Paga por boleto',
 }
 
-/** Briefing de Tráfego Pago — filled by CS (default: Janilson) during or
- *  right after the kickoff call. Empresa/CNPJ/site/redes já ficam no
- *  cadastro do cliente (Client), então não se repetem aqui. */
+/** Briefing de Tráfego Pago — filled by CS during or right after the kickoff
+ *  call. Empresa/CNPJ/site/redes já ficam no cadastro do cliente (Client) e
+ *  Acessos vive na própria aba "Acessos" (preenchida pelos gestores), então
+ *  nenhum dos dois se repete aqui. */
 export interface PaidTrafficBriefing {
-  preenchidoPor: string
+  /** Who last saved it — set automatically from the logged-in user, not a
+   *  field the person filling it out picks. */
+  preenchidoPor?: string
   filledAt?: Timestamp | null
 
   // Seção 1 — Responsáveis
@@ -72,10 +57,7 @@ export interface PaidTrafficBriefing {
   marketing: BriefingContact[]
   comercial: BriefingContact[]
 
-  // Seção 2 — Acessos
-  acessos: BriefingAccess
-
-  // Seção 3 — Comercial
+  // Seção 2 — Comercial
   estruturaTime?: string
   processoVendas?: string
   sistemaGestaoLeads?: string
@@ -85,7 +67,7 @@ export interface PaidTrafficBriefing {
   percepcaoMercado?: string
   desafiosAtuais?: string
 
-  // Seção 4 — Marketing
+  // Seção 3 — Marketing
   objetivos: MarketingObjective[]
   resultadoEsperado?: string
   regioesDirecionamento?: string
@@ -106,7 +88,7 @@ export interface PaidTrafficBriefing {
   precoComparado?: PriceComparison
   motivoComprarMesmoCaro?: string
 
-  // Seção 5 — ICP B2C
+  // Seção 4 — ICP B2C
   b2cGenero?: string
   b2cEstadoCivilFilhos?: string
   b2cFaixaEtaria?: string
@@ -115,37 +97,26 @@ export interface PaidTrafficBriefing {
   b2cDorPrincipal?: string
   b2cSolucoesTentadas?: string
 
-  // Seção 6 — ICP B2B
+  // Seção 5 — ICP B2B
   b2bSetor?: string
   b2bFaturamentoMinimo?: number
   b2bQuantidadeFuncionarios?: string
   b2bCargoDecisor?: string
   b2bLocalizacao?: string
 
-  // Seção 7 — Palavras-chave
+  // Seção 6 — Palavras-chave
   palavrasChave?: string
 
-  // Seção 8 — Observações gerais
+  // Seção 7 — Observações gerais
   observacoes?: string
 }
 
-export const EMPTY_BRIEFING_ACCESS: BriefingAccess = {
-  agenciaNasContasDeAnuncios: false,
-  instagram: emptyAccessItem(),
-  facebookPagina: emptyAccessItem(),
-  analytics: emptyAccessItem(),
-  gtm: emptyAccessItem(),
-  googleMeuNegocio: emptyAccessItem(),
-}
-
 export const EMPTY_PAID_TRAFFIC_BRIEFING: PaidTrafficBriefing = {
-  preenchidoPor: 'Janilson',
-  socios: [],
-  decisores: [],
-  aprovadoresCampanhas: [],
-  financeiro: [],
-  marketing: [],
-  comercial: [],
-  acessos: EMPTY_BRIEFING_ACCESS,
+  socios: [emptyContact()],
+  decisores: [emptyContact()],
+  aprovadoresCampanhas: [emptyContact()],
+  financeiro: [emptyContact()],
+  marketing: [emptyContact()],
+  comercial: [emptyContact()],
   objetivos: [],
 }
