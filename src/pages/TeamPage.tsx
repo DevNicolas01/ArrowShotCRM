@@ -1,122 +1,161 @@
-import toast from 'react-hot-toast'
-import { useAuth } from '../context/AuthContext'
-import { useUsers } from '../hooks/useUsers'
-import { updateUserRole, updateUserActive } from '../services/userService'
+import { useState } from 'react'
+import { Plus, Users2, CalendarClock } from 'lucide-react'
+import { useTeamMembers } from '../hooks/useTeamMembers'
+import { TeamMemberFormModal } from '../components/team/TeamMemberFormModal'
+import { TeamMemberDrawer } from '../components/team/TeamMemberDrawer'
 import { Avatar } from '../components/ui/Avatar'
 import { Badge } from '../components/ui/Badge'
-import { Select } from '../components/ui/Field'
+import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/FullPageSpinner'
-import { USER_ROLE_LABEL } from '../types/user'
-import type { UserRole } from '../types/common'
+import { EmptyState } from '../components/ui/EmptyState'
+import { TEAM_PERMISSION_LABEL, TEAM_MEETINGS, FUTURE_ROLES, type TeamMember } from '../types'
 
-const ROLE_BADGE: Record<UserRole, string> = {
-  admin: 'bg-brand-100 text-brand-700',
-  manager: 'bg-blue-100 text-blue-700',
-  employee: 'bg-slate-100 text-slate-600',
-  client: 'bg-amber-100 text-amber-700',
+const STATUS_BADGE: Record<TeamMember['status'], string> = {
+  active: 'bg-emerald-100 text-emerald-700',
+  inactive: 'bg-slate-100 text-slate-500',
 }
 
 export function TeamPage() {
-  const { profile } = useAuth()
-  const { data: users, loading } = useUsers()
+  const { data: members, loading } = useTeamMembers()
+  const [openMemberId, setOpenMemberId] = useState<string | null>(null)
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [creating, setCreating] = useState(false)
 
-  const handleRoleChange = async (uid: string, role: UserRole) => {
-    if (!profile) return
-    try {
-      await updateUserRole(uid, role, profile.id)
-      toast.success('Papel atualizado')
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao atualizar papel')
-    }
-  }
-
-  const handleToggleActive = async (uid: string, active: boolean) => {
-    if (!profile) return
-    try {
-      await updateUserActive(uid, active, profile.id)
-      toast.success(active ? 'Usuário reativado' : 'Usuário desativado')
-    } catch (err) {
-      console.error(err)
-      toast.error('Erro ao atualizar status')
-    }
-  }
+  const openMember = members.find((m) => m.id === openMemberId) ?? null
+  const activeMembers = members.filter((m) => m.status === 'active')
+  const inactiveMembers = members.filter((m) => m.status === 'inactive')
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-800">Equipe</h1>
-        <p className="text-sm text-slate-400">Gerencie o papel de cada pessoa no CRM.</p>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-800">Equipe</h1>
+          <p className="text-sm text-slate-400">Perfis, cargos, rotinas e reuniões da equipe Arrow Shot.</p>
+        </div>
+        <Button size="sm" icon={<Plus size={14} />} onClick={() => setCreating(true)}>
+          Novo membro
+        </Button>
       </div>
 
       {loading ? (
         <Spinner />
+      ) : members.length === 0 ? (
+        <EmptyState
+          title="Nenhum membro cadastrado"
+          description='Clique em "Novo membro" para montar o time.'
+        />
       ) : (
+        <section className="flex flex-col gap-3">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+            <Users2 size={15} className="text-slate-400" /> Equipe ativa
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {activeMembers.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setOpenMemberId(m.id)}
+                className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-3.5 text-left shadow-sm transition-shadow hover:shadow-md"
+              >
+                <Avatar name={m.name} photoURL={m.photoURL} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-slate-800">{m.name}</p>
+                  <p className="truncate text-xs text-slate-400">{m.jobTitle || '—'}</p>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    <Badge className="bg-brand-50 text-brand-600">{TEAM_PERMISSION_LABEL[m.permission]}</Badge>
+                    {!m.userId && <Badge className="bg-slate-100 text-slate-500">Sem login</Badge>}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {inactiveMembers.length > 0 && (
+            <>
+              <h2 className="mt-2 text-sm font-semibold text-slate-500">Inativos</h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {inactiveMembers.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setOpenMemberId(m.id)}
+                    className="flex items-center gap-3 rounded-xl border border-slate-100 bg-white p-3.5 text-left opacity-60 shadow-sm transition-opacity hover:opacity-100"
+                  >
+                    <Avatar name={m.name} photoURL={m.photoURL} size="md" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-slate-800">{m.name}</p>
+                      <p className="truncate text-xs text-slate-400">{m.jobTitle || '—'}</p>
+                      <Badge className={`mt-1.5 ${STATUS_BADGE.inactive}`}>Inativo</Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-slate-700">Cargos futuros</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {FUTURE_ROLES.map((role) => (
+            <div
+              key={role}
+              className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-3.5 opacity-60"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-medium text-slate-500">
+                ?
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-slate-600">{role}</p>
+                <Badge className="mt-1 bg-slate-200 text-slate-500">Vaga futura</Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+          <CalendarClock size={15} className="text-slate-400" /> Reuniões recorrentes da equipe
+        </h2>
         <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
-              <tr>
-                <th className="px-4 py-2.5 font-medium">Pessoa</th>
-                <th className="px-4 py-2.5 font-medium">Papel</th>
-                <th className="px-4 py-2.5 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => {
-                const isSelf = u.id === profile?.id
-                return (
-                  <tr key={u.id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar name={u.name} photoURL={u.photoURL} size="sm" />
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-slate-700">
-                            {u.name} {isSelf && <span className="text-xs text-slate-400">(você)</span>}
-                          </p>
-                          <p className="truncate text-xs text-slate-400">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {isSelf ? (
-                        <Badge className={ROLE_BADGE[u.role]}>{USER_ROLE_LABEL[u.role]}</Badge>
-                      ) : (
-                        <Select
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                          className="w-40"
-                        >
-                          {Object.entries(USER_ROLE_LABEL).map(([v, l]) => (
-                            <option key={v} value={v}>
-                              {l}
-                            </option>
-                          ))}
-                        </Select>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {isSelf ? (
-                        <Badge className="bg-emerald-100 text-emerald-700">Ativo</Badge>
-                      ) : (
-                        <button
-                          onClick={() => handleToggleActive(u.id, !u.active)}
-                          className={`rounded-md px-2.5 py-1 text-xs font-medium ${
-                            u.active ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                          }`}
-                        >
-                          {u.active ? 'Ativo' : 'Inativo'}
-                        </button>
-                      )}
-                    </td>
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th className="px-4 py-2.5 font-medium">Reunião</th>
+                  <th className="px-4 py-2.5 font-medium">Quando</th>
+                  <th className="px-4 py-2.5 font-medium">Participantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TEAM_MEETINGS.map((meeting, i) => (
+                  <tr key={i} className="border-b border-slate-50 last:border-0">
+                    <td className="px-4 py-2.5 font-medium text-slate-700">{meeting.title}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{meeting.schedule}</td>
+                    <td className="px-4 py-2.5 text-slate-500">{meeting.participants}</td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+      </section>
+
+      <TeamMemberDrawer
+        member={openMember}
+        onClose={() => setOpenMemberId(null)}
+        onEdit={() => {
+          setEditingMember(openMember)
+          setOpenMemberId(null)
+        }}
+      />
+      <TeamMemberFormModal open={creating} onClose={() => setCreating(false)} nextOrder={members.length} />
+      <TeamMemberFormModal
+        open={!!editingMember}
+        onClose={() => setEditingMember(null)}
+        member={editingMember}
+        nextOrder={members.length}
+      />
     </div>
   )
 }

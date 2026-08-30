@@ -175,6 +175,13 @@ service cloud.firestore {
       allow delete: if isOwnUser(resource.data.userId) || isAdmin();
     }
 
+    // ---------- teamMembers (Equipe roster: cargo, permissão informativa,
+    // rotina — separado de `users`, que controla o acesso real) ----------
+    match /teamMembers/{memberId} {
+      allow read: if isInternal();
+      allow write: if isAdminOrManager();
+    }
+
     // ---------- teams / projects ----------
     match /teams/{teamId} {
       allow read: if isInternal();
