@@ -78,7 +78,7 @@ export function Sidebar({
         <div className="flex items-center gap-2.5 px-4 py-5">
           <img src="/favicon.png" alt="" className="h-8 w-8 rounded-md" />
           <div className="min-w-0 flex-1">
-            <p className="font-display text-base font-bold leading-tight text-white">Arrow Shot</p>
+            <p className="font-display text-[15px] font-bold leading-tight text-white">Arrow Shot</p>
             <p className="text-[11px] leading-tight text-white/60">Marketing CRM</p>
           </div>
           <button onClick={onCloseMobile} className="rounded-md p-1 text-slate-400 hover:text-white md:hidden">
@@ -94,12 +94,12 @@ export function Sidebar({
               end={end}
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-700 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
-              <Icon size={17} />
+              <Icon size={18} />
               {label}
             </NavLink>
           ))}
@@ -109,12 +109,12 @@ export function Sidebar({
               to="/universidade"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-700 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
-              <GraduationCap size={17} />
+              <GraduationCap size={18} />
               Universidade
             </NavLink>
           )}
@@ -124,12 +124,12 @@ export function Sidebar({
               to="/equipe"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-700 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
-              <UserCog size={17} />
+              <UserCog size={18} />
               Equipe
             </NavLink>
           )}
@@ -159,7 +159,7 @@ export function Sidebar({
                   title="Módulo em preparação"
                   className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-500"
                 >
-                  <Icon size={17} />
+                  <Icon size={18} />
                   {label}
                   <Lock size={11} className="ml-auto opacity-70" />
                 </div>

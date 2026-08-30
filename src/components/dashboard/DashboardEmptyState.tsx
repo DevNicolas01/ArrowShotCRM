@@ -4,9 +4,9 @@ const BADGES: { key: keyof DashboardEmptyStateProps['counts']; label: string; do
   { key: 'today', label: 'tarefas de hoje', dot: 'bg-blue-500' },
   { key: 'overdue', label: 'atrasadas', dot: 'bg-red-500' },
   { key: 'upcoming', label: 'próximas (7 dias)', dot: 'bg-emerald-500' },
-  { key: 'inProduction', label: 'em produção', dot: 'bg-brand-500' },
+  { key: 'inProduction', label: 'em produção', dot: 'bg-violet-500' },
   { key: 'waitingApproval', label: 'aguardando aprovação', dot: 'bg-amber-500' },
-  { key: 'approved', label: 'aprovados', dot: 'bg-teal-500' },
+  { key: 'approved', label: 'aprovados', dot: 'bg-emerald-500' },
 ]
 
 interface DashboardEmptyStateProps {
@@ -23,7 +23,7 @@ interface DashboardEmptyStateProps {
 
 export function DashboardEmptyState({ counts, onExpand }: DashboardEmptyStateProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm">
       <div className="flex items-center gap-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500">
           <CheckCircle2 size={14} className="text-white" />
