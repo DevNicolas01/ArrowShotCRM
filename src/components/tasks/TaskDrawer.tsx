@@ -18,6 +18,8 @@ import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
   TASK_STATUS_ORDER,
+  ONBOARDING_BOARD_STATUS_ORDER,
+  GENERIC_BOARD_STATUS_ORDER,
   formatRecurrence,
   type Task,
 } from '../../types/task'
@@ -48,6 +50,13 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
     toast.success('Próxima ocorrência criada')
   }
 
+  const statusOptions =
+    task.board === 'onboarding'
+      ? ONBOARDING_BOARD_STATUS_ORDER
+      : task.board === 'paid_traffic' || task.board === 'cs'
+        ? GENERIC_BOARD_STATUS_ORDER
+        : TASK_STATUS_ORDER
+
   return (
     <Drawer
       open={!!task}
@@ -65,7 +74,7 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Status">
             <Select value={task.status} onChange={(e) => save({ status: e.target.value as Task['status'] })}>
-              {TASK_STATUS_ORDER.map((s) => (
+              {statusOptions.map((s) => (
                 <option key={s} value={s}>
                   {TASK_STATUS_LABEL[s]}
                 </option>

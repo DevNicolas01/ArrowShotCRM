@@ -8,18 +8,20 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { createTask } from '../../services/taskService'
-import { TASK_PRIORITY_LABEL, type TaskPriority } from '../../types/task'
+import { TASK_PRIORITY_LABEL, TASK_BOARD_LABEL, FIRST_BOARD_STATUS, type TaskPriority, type TaskBoard } from '../../types/task'
 
 export function TaskFormModal({
   open,
   onClose,
   defaultClientId,
   defaultStatus,
+  defaultBoard,
 }: {
   open: boolean
   onClose: () => void
   defaultClientId?: string
   defaultStatus?: 'todo' | 'in_progress' | 'review' | 'waiting_client' | 'done'
+  defaultBoard?: TaskBoard
 }) {
   const { profile } = useAuth()
   const { data: clients } = useClients()
@@ -31,6 +33,7 @@ export function TaskFormModal({
   const [assignedTo, setAssignedTo] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('normal')
+  const [board, setBoard] = useState<TaskBoard | ''>(defaultBoard ?? '')
   const [saving, setSaving] = useState(false)
 
   const reset = () => {
@@ -40,6 +43,7 @@ export function TaskFormModal({
     setAssignedTo('')
     setDueDate('')
     setPriority('normal')
+    setBoard(defaultBoard ?? '')
   }
 
   const handleSubmit = async () => {
@@ -54,7 +58,8 @@ export function TaskFormModal({
           assignedTo: assignedTo || undefined,
           dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate)) : null,
           priority,
-          status: defaultStatus ?? 'todo',
+          status: board ? FIRST_BOARD_STATUS[board] : (defaultStatus ?? 'todo'),
+          board: board || undefined,
           checklist: [],
           order: Date.now(),
         },
@@ -119,6 +124,17 @@ export function TaskFormModal({
           <Field label="Prioridade">
             <Select value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)}>
               {Object.entries(TASK_PRIORITY_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field label="Board (Kanban)">
+            <Select value={board} onChange={(e) => setBoard(e.target.value as TaskBoard | '')}>
+              <option value="">Nenhum</option>
+              {Object.entries(TASK_BOARD_LABEL).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
                 </option>

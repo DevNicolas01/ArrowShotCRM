@@ -4,7 +4,7 @@ import { createTask } from './taskService'
 import { nextRecurrenceDate } from '../types/task'
 import type { Client } from '../types/client'
 import type { AppUser } from '../types/user'
-import type { ChecklistItem, TaskRecurrence } from '../types/task'
+import type { ChecklistItem, TaskBoard, TaskRecurrence } from '../types/task'
 
 function toChecklist(items: string[]): ChecklistItem[] {
   return items.map((text) => ({ id: crypto.randomUUID(), text, done: false }))
@@ -114,7 +114,8 @@ async function createOnboardingTask(
       assignedTo: assigneeId,
       dueDate: Timestamp.fromDate(addBusinessDays(new Date(), 5)),
       priority: 'high',
-      status: 'todo',
+      status: 'onboarding',
+      board: 'onboarding',
       checklist: toChecklist(onboardingItems(client.companyName)),
       order,
     },
@@ -131,7 +132,8 @@ async function createRecurringTask(
   recurrence: TaskRecurrence,
   items: string[],
   assigneeId: string | undefined,
-  order: number
+  order: number,
+  board: TaskBoard
 ) {
   await createTask(
     {
@@ -142,6 +144,7 @@ async function createRecurringTask(
       dueDate: Timestamp.fromDate(nextRecurrenceDate(recurrence)),
       priority: 'normal',
       status: 'todo',
+      board,
       checklist: toChecklist(items),
       order,
       recurrence,
@@ -166,11 +169,11 @@ export async function createSharedOnboardingTasks(
   await createOnboardingTask(client, userId, userName, janilsonId, base)
   await createRecurringTask(
     client, userId, userName,
-    'CS — Semanal', { frequency: 'weekly', weekday: 5 }, CS_SEMANAL_ITEMS, janilsonId, base + 1
+    'CS — Semanal', { frequency: 'weekly', weekday: 5 }, CS_SEMANAL_ITEMS, janilsonId, base + 1, 'cs'
   )
   await createRecurringTask(
     client, userId, userName,
-    'CS — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, CS_MENSAL_ITEMS, janilsonId, base + 2
+    'CS — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, CS_MENSAL_ITEMS, janilsonId, base + 2, 'cs'
   )
 }
 
@@ -197,7 +200,8 @@ export async function createPaidTrafficTasks(
       assignedTo: janilsonId,
       dueDate: Timestamp.fromDate(addBusinessDays(new Date(), 5)),
       priority: 'high',
-      status: 'todo',
+      status: 'briefing',
+      board: 'onboarding',
       checklist: toChecklist(BRIEFING_ACESSOS_ITEMS),
       order: base + 1,
     },
@@ -213,7 +217,8 @@ export async function createPaidTrafficTasks(
       assignedTo: cianeId,
       dueDate: Timestamp.fromDate(addBusinessDays(new Date(), 5)),
       priority: 'high',
-      status: 'todo',
+      status: 'planning',
+      board: 'onboarding',
       checklist: toChecklist(PLANEJAMENTO_CAMPANHAS_ITEMS),
       order: base + 2,
     },
@@ -223,18 +228,18 @@ export async function createPaidTrafficTasks(
 
   await createRecurringTask(
     client, userId, userName,
-    'Gestor de Tráfego — Semanal', { frequency: 'weekly', weekday: 1 }, TRAFEGO_SEMANAL_ITEMS, cianeId, base + 3
+    'Gestor de Tráfego — Semanal', { frequency: 'weekly', weekday: 1 }, TRAFEGO_SEMANAL_ITEMS, cianeId, base + 3, 'paid_traffic'
   )
   await createRecurringTask(
     client, userId, userName,
-    'Gestor de Tráfego — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, TRAFEGO_MENSAL_ITEMS, cianeId, base + 4
+    'Gestor de Tráfego — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, TRAFEGO_MENSAL_ITEMS, cianeId, base + 4, 'paid_traffic'
   )
   await createRecurringTask(
     client, userId, userName,
-    'CS — Semanal', { frequency: 'weekly', weekday: 5 }, CS_SEMANAL_ITEMS, janilsonId, base + 5
+    'CS — Semanal', { frequency: 'weekly', weekday: 5 }, CS_SEMANAL_ITEMS, janilsonId, base + 5, 'cs'
   )
   await createRecurringTask(
     client, userId, userName,
-    'CS — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, CS_MENSAL_ITEMS, janilsonId, base + 6
+    'CS — Mensal', { frequency: 'monthly', dayOfMonth: 1 }, CS_MENSAL_ITEMS, janilsonId, base + 6, 'cs'
   )
 }

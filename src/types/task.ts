@@ -9,6 +9,47 @@ export type TaskStatus =
   | 'review'
   | 'waiting_client'
   | 'done'
+  // Onboarding board stages (see TaskBoard) — a separate vocabulary from the
+  // 5 generic ones above, used only by tasks with board: 'onboarding'.
+  | 'new_client'
+  | 'onboarding'
+  | 'briefing'
+  | 'access_setup'
+  | 'planning'
+  | 'active'
+
+/** Which Kanban board a task shows up on (see KanbanPage). Optional — tasks
+ *  outside these 3 flows (ex: Ativação/Materiais de Social Media) simply
+ *  don't appear in the Kanban, only in the Tarefas list and client tabs. */
+export type TaskBoard = 'onboarding' | 'paid_traffic' | 'cs'
+
+export const TASK_BOARD_LABEL: Record<TaskBoard, string> = {
+  onboarding: 'Onboarding',
+  paid_traffic: 'Tráfego Pago',
+  cs: 'CS & Relacionamento',
+}
+
+/** Column order for the Onboarding board — status values exclusive to
+ *  board: 'onboarding' tasks. */
+export const ONBOARDING_BOARD_STATUS_ORDER: TaskStatus[] = [
+  'new_client',
+  'onboarding',
+  'briefing',
+  'access_setup',
+  'planning',
+  'active',
+]
+
+/** Column order for the Tráfego Pago and CS & Relacionamento boards — the
+ *  generic vocabulary minus "Revisão", which doesn't apply to either flow. */
+export const GENERIC_BOARD_STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'waiting_client', 'done']
+
+/** First column a freshly created task for a given board lands on. */
+export const FIRST_BOARD_STATUS: Record<TaskBoard, TaskStatus> = {
+  onboarding: 'new_client',
+  paid_traffic: 'todo',
+  cs: 'todo',
+}
 
 export interface ChecklistItem {
   id: string
@@ -44,6 +85,8 @@ export interface Task extends BaseDoc {
    *  the drawer offers a "duplicate next occurrence" action instead of an
    *  automatic job. */
   recurrence?: TaskRecurrence | null
+  /** Which Kanban board this task belongs to, if any (see TaskBoard). */
+  board?: TaskBoard
 }
 
 export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
@@ -52,6 +95,12 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
   review: 'Revisão',
   waiting_client: 'Aguardando Cliente',
   done: 'Concluído',
+  new_client: 'Novo Cliente',
+  onboarding: 'Onboarding',
+  briefing: 'Briefing',
+  access_setup: 'Acessos',
+  planning: 'Planejamento',
+  active: 'Ativo',
 }
 
 export const TASK_STATUS_ORDER: TaskStatus[] = [
