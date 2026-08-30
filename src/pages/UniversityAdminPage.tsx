@@ -105,8 +105,8 @@ export function UniversityAdminPage() {
       </button>
 
       <div>
-        <h1 className="text-xl font-semibold text-slate-800">Painel Admin — Universidade Arrow Shot</h1>
-        <p className="text-sm text-slate-400">Gerencie trilhas, módulos, progresso e convites.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Painel Admin — Universidade Arrow Shot</h1>
+        <p className="text-sm text-slate-500">Gerencie trilhas, módulos, progresso e convites.</p>
       </div>
 
       {/* ---------- Trilhas e módulos ---------- */}

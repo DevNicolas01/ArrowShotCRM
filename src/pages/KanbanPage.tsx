@@ -25,13 +25,13 @@ const ACCENTS: Record<TaskStatus, string> = {
   todo: 'bg-slate-400',
   in_progress: 'bg-blue-500',
   review: 'bg-amber-500',
-  waiting_client: 'bg-fuchsia-500',
+  waiting_client: 'bg-violet-500',
   done: 'bg-emerald-500',
   new_client: 'bg-slate-400',
   onboarding: 'bg-blue-500',
   briefing: 'bg-amber-500',
-  access_setup: 'bg-fuchsia-500',
-  planning: 'bg-brand-500',
+  access_setup: 'bg-violet-500',
+  planning: 'bg-indigo-500',
   active: 'bg-emerald-500',
 }
 
@@ -91,8 +91,8 @@ export function KanbanPage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Kanban de Tarefas</h1>
-          <p className="text-sm text-slate-400">Arraste os cards para atualizar o status.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Kanban de Tarefas</h1>
+          <p className="text-sm text-slate-500">Arraste os cards para atualizar o status.</p>
         </div>
         <Button icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Nova tarefa
@@ -115,19 +115,19 @@ export function KanbanPage() {
         </div>
 
         <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-4">
-          <select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+          <select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
             <option value="">Todos os clientes</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.companyName}</option>
             ))}
           </select>
-          <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+          <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
             <option value="">Todos os responsáveis</option>
             {users.map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
             ))}
           </select>
-          <select value={dueFilter} onChange={(e) => setDueFilter(e.target.value as DueFilter)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+          <select value={dueFilter} onChange={(e) => setDueFilter(e.target.value as DueFilter)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
             {(Object.entries(DUE_FILTER_LABEL) as [DueFilter, string][]).map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
             ))}

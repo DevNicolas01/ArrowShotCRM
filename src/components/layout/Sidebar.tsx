@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTeamMembers } from '../../hooks/useTeamMembers'
 import { Avatar } from '../ui/Avatar'
 import { USER_ROLE_LABEL } from '../../types/user'
 
@@ -50,7 +51,9 @@ export function Sidebar({
   onCloseMobile: () => void
 }) {
   const { profile } = useAuth()
+  const { data: teamMembers } = useTeamMembers()
   const canSeeUniversity = profile?.role === 'admin' || profile?.role === 'manager' || profile?.role === 'employee'
+  const myProfileCargo = teamMembers.find((m) => m.userId === profile?.id)?.jobTitle
   const [futureNavOpen, setFutureNavOpen] = useState(() => localStorage.getItem(FUTURE_NAV_OPEN_KEY) === 'true')
 
   const toggleFutureNav = () => {
@@ -75,8 +78,8 @@ export function Sidebar({
         <div className="flex items-center gap-2.5 px-4 py-5">
           <img src="/favicon.png" alt="" className="h-8 w-8 rounded-md" />
           <div className="min-w-0 flex-1">
-            <p className="font-display text-base font-semibold leading-tight text-white">Arrow Shot</p>
-            <p className="text-[11px] leading-tight text-slate-400">Marketing CRM</p>
+            <p className="font-display text-base font-bold leading-tight text-white">Arrow Shot</p>
+            <p className="text-[11px] leading-tight text-white/60">Marketing CRM</p>
           </div>
           <button onClick={onCloseMobile} className="rounded-md p-1 text-slate-400 hover:text-white md:hidden">
             <X size={18} />
@@ -91,8 +94,8 @@ export function Sidebar({
               end={end}
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
@@ -106,8 +109,8 @@ export function Sidebar({
               to="/universidade"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
@@ -121,8 +124,8 @@ export function Sidebar({
               to="/equipe"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                `flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-150 ease-in-out ${
+                  isActive ? 'bg-brand-600 text-white' : 'text-slate-300 hover:bg-navy-800 hover:text-white'
                 }`
               }
             >
@@ -131,13 +134,15 @@ export function Sidebar({
             </NavLink>
           )}
 
-          <button
-            onClick={toggleFutureNav}
-            className="mt-5 mb-1 flex w-full items-center gap-1 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-300"
-          >
-            {futureNavOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            Em breve
-          </button>
+          <div className="mt-5 mb-1 border-t border-navy-800 pt-4">
+            <button
+              onClick={toggleFutureNav}
+              className="flex w-full items-center gap-1 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:text-slate-300"
+            >
+              {futureNavOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              Em breve
+            </button>
+          </div>
           <div
             className={`grid transition-[grid-template-rows] duration-200 ease-in-out ${
               futureNavOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
@@ -145,7 +150,7 @@ export function Sidebar({
           >
             <div
               className={`flex flex-col gap-0.5 overflow-hidden transition-opacity duration-200 ${
-                futureNavOpen ? 'opacity-100' : 'opacity-0'
+                futureNavOpen ? 'opacity-50' : 'opacity-0'
               }`}
             >
               {futureNav.map(({ label, icon: Icon }) => (
@@ -156,7 +161,7 @@ export function Sidebar({
                 >
                   <Icon size={17} />
                   {label}
-                  <Lock size={12} className="ml-auto" />
+                  <Lock size={11} className="ml-auto opacity-70" />
                 </div>
               ))}
             </div>
@@ -164,11 +169,11 @@ export function Sidebar({
         </nav>
 
         {profile && (
-          <div className="flex items-center gap-2.5 border-t border-white/5 px-4 py-3">
+          <div className="flex items-center gap-2.5 border-t border-navy-800 px-4 py-3">
             <Avatar name={profile.name} photoURL={profile.photoURL} size="sm" />
             <div className="min-w-0">
               <p className="truncate text-xs font-medium text-white">{profile.name}</p>
-              <p className="truncate text-[11px] text-slate-400">{USER_ROLE_LABEL[profile.role]}</p>
+              <p className="truncate text-[11px] text-slate-400">{myProfileCargo ?? USER_ROLE_LABEL[profile.role]}</p>
             </div>
           </div>
         )}

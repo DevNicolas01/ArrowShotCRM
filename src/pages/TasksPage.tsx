@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, Search, RotateCw } from 'lucide-react'
+import { isPast, isToday } from 'date-fns'
 import { useAllTasks } from '../hooks/useTasks'
 import { useClients } from '../hooks/useClients'
 import { useUsers } from '../hooks/useUsers'
@@ -9,7 +11,20 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { Avatar } from '../components/ui/Avatar'
 import { EmptyState } from '../components/ui/EmptyState'
-import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from '../types/task'
+import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, TASK_STATUS_LABEL, formatRecurrence, type Task } from '../types/task'
+
+function isOverdue(task: Task): boolean {
+  if (!task.dueDate || task.status === 'done' || task.status === 'active') return false
+  const due = task.dueDate.toDate()
+  return isPast(due) && !isToday(due)
+}
+
+function rowTint(task: Task): string {
+  if (isOverdue(task)) return 'bg-red-50'
+  if (task.status === 'done' || task.status === 'active') return 'bg-emerald-50'
+  if (task.status === 'in_progress') return 'bg-blue-50'
+  return ''
+}
 
 export function TasksPage() {
   const { data: tasks, loading } = useAllTasks()
@@ -44,8 +59,8 @@ export function TasksPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Tarefas</h1>
-          <p className="text-sm text-slate-400">{filtered.length} tarefa(s)</p>
+          <h1 className="text-2xl font-bold text-slate-900">Tarefas</h1>
+          <p className="text-sm text-slate-500">{filtered.length} tarefa(s)</p>
         </div>
         <Button icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Nova tarefa
@@ -59,28 +74,28 @@ export function TasksPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar tarefa..."
-            className="rounded-lg border border-slate-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+            className="h-[38px] rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none transition-all duration-150 ease-in-out focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />
         </div>
-        <select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+        <select value={clientFilter} onChange={(e) => setClientFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todos os clientes</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>{c.companyName}</option>
           ))}
         </select>
-        <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+        <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todos os responsáveis</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>{u.name}</option>
           ))}
         </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todos os status</option>
           {Object.entries(TASK_STATUS_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
-        <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+        <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todas as prioridades</option>
           {Object.entries(TASK_PRIORITY_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
@@ -94,41 +109,66 @@ export function TasksPage() {
         <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
           <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
               <tr>
-                <th className="px-4 py-2.5 font-medium">Tarefa</th>
-                <th className="px-4 py-2.5 font-medium">Cliente</th>
-                <th className="px-4 py-2.5 font-medium">Status</th>
-                <th className="px-4 py-2.5 font-medium">Prioridade</th>
-                <th className="px-4 py-2.5 font-medium">Prazo</th>
-                <th className="px-4 py-2.5 font-medium">Responsável</th>
+                <th className="px-4 py-2.5">Tarefa</th>
+                <th className="px-4 py-2.5">Cliente</th>
+                <th className="px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5">Prioridade</th>
+                <th className="px-4 py-2.5">Prazo</th>
+                <th className="px-4 py-2.5">Responsável</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t) => (
-                <tr
-                  key={t.id}
-                  onClick={() => setOpenTaskId(t.id)}
-                  className="cursor-pointer border-b border-slate-50 last:border-0 hover:bg-slate-50"
-                >
-                  <td className="px-4 py-2.5 font-medium text-slate-700">{t.title}</td>
-                  <td className="px-4 py-2.5 text-slate-500">{t.clientId ? clientMap[t.clientId]?.companyName ?? '—' : '—'}</td>
-                  <td className="px-4 py-2.5 text-slate-500">{TASK_STATUS_LABEL[t.status]}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge className={TASK_PRIORITY_COLOR[t.priority]}>{TASK_PRIORITY_LABEL[t.priority]}</Badge>
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-500">
-                    {t.dueDate ? t.dueDate.toDate().toLocaleDateString('pt-BR') : '—'}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {t.assignedTo && userMap[t.assignedTo] ? (
-                      <Avatar name={userMap[t.assignedTo].name} photoURL={userMap[t.assignedTo].photoURL} size="xs" />
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((t) => {
+                const overdue = isOverdue(t)
+                const client = t.clientId ? clientMap[t.clientId] : undefined
+                return (
+                  <tr
+                    key={t.id}
+                    onClick={() => setOpenTaskId(t.id)}
+                    className={`cursor-pointer border-b border-slate-50 text-slate-700 transition-colors duration-150 ease-in-out last:border-0 hover:bg-slate-100 ${rowTint(t)}`}
+                  >
+                    <td className="px-4 py-2.5 font-medium text-slate-700">
+                      <span className="flex items-center gap-1.5">
+                        {t.title}
+                        {t.recurrence && (
+                          <span title={formatRecurrence(t.recurrence)} className="shrink-0 text-slate-400">
+                            <RotateCw size={12} />
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-500">
+                      {client ? (
+                        <Link
+                          to={`/clientes/${client.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {client.companyName}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-500">{TASK_STATUS_LABEL[t.status]}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge className={TASK_PRIORITY_COLOR[t.priority]}>{TASK_PRIORITY_LABEL[t.priority]}</Badge>
+                    </td>
+                    <td className={`px-4 py-2.5 ${overdue ? 'font-bold text-red-600' : 'text-slate-500'}`}>
+                      {t.dueDate ? t.dueDate.toDate().toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {t.assignedTo && userMap[t.assignedTo] ? (
+                        <Avatar name={userMap[t.assignedTo].name} photoURL={userMap[t.assignedTo].photoURL} size="xs" />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           </div>

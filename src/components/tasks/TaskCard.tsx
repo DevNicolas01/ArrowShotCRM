@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, formatRecurrence, type Task } from '../../types/task'
+import { clientHashColor } from '../../utils/clientColor'
 import type { AppUser, Client } from '../../types'
 
 export function TaskCard({
@@ -33,14 +34,14 @@ export function TaskCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`cursor-pointer rounded-lg border border-slate-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${
+      className={`cursor-pointer rounded-[10px] border border-slate-100 bg-white p-[14px] shadow-sm transition-all duration-150 ease-in-out hover:shadow-md ${
         isDragging ? 'opacity-40' : ''
       }`}
     >
       {client && (
-        <p className="mb-1 truncate text-[11px] font-medium text-brand-500">{client.companyName}</p>
+        <p className={`mb-1 truncate text-[11px] font-medium ${clientHashColor(client.id)}`}>{client.companyName}</p>
       )}
-      <p className="text-sm font-medium text-slate-800">{task.title}</p>
+      <p className="text-sm font-semibold text-slate-900">{task.title}</p>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <Badge className={TASK_PRIORITY_COLOR[task.priority]}>{TASK_PRIORITY_LABEL[task.priority]}</Badge>

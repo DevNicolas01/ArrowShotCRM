@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Search } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
 import { useUsers } from '../hooks/useUsers'
-import { ClientCard } from '../components/clients/ClientCard'
+import { ClientsTable } from '../components/clients/ClientsTable'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -27,14 +27,20 @@ export function ClientsPage() {
     })
   }, [clients, search, statusFilter])
 
+  const ownersByClientId = useMemo(() => {
+    return Object.fromEntries(
+      filtered.map((c) => [c.id, getClientOwnerIds(c).map((id) => userMap[id]).filter(Boolean)]),
+    )
+  }, [filtered, userMap])
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Clientes</h1>
-          <p className="text-sm text-slate-400">{filtered.length} cliente(s)</p>
+          <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
+          <p className="text-sm text-slate-500">{filtered.length} cliente(s)</p>
         </div>
-        <Button icon={<Plus size={14} />} onClick={() => setCreating(true)}>
+        <Button style={{ height: '40px' }} icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Novo cliente
         </Button>
       </div>
@@ -46,10 +52,10 @@ export function ClientsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar cliente..."
-            className="rounded-lg border border-slate-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+            className="h-[38px] rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none transition-all duration-150 ease-in-out focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todos os status</option>
           {Object.entries(CLIENT_STATUS_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
@@ -60,16 +66,11 @@ export function ClientsPage() {
       {!loading && filtered.length === 0 ? (
         <EmptyState title="Nenhum cliente encontrado" description="Ajuste os filtros ou cadastre um novo cliente." />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((c) => (
-            <ClientCard
-              key={c.id}
-              client={c}
-              owners={getClientOwnerIds(c).map((id) => userMap[id]).filter(Boolean)}
-              onClick={() => navigate(`/clientes/${c.id}`)}
-            />
-          ))}
-        </div>
+        <ClientsTable
+          clients={filtered}
+          ownersByClientId={ownersByClientId}
+          onRowClick={(c) => navigate(`/clientes/${c.id}`)}
+        />
       )}
 
       <ClientFormModal open={creating} onClose={() => setCreating(false)} />

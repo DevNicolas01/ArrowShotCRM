@@ -101,8 +101,8 @@ export function CalendarPage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Calendário</h1>
-          <p className="text-sm text-slate-400">Publicações, prazos e reuniões.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Calendário</h1>
+          <p className="text-sm text-slate-500">Publicações, prazos e reuniões.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-lg border border-slate-200 p-0.5">

@@ -15,17 +15,18 @@ export function KanbanColumn({
   children: ReactNode
 }) {
   const { setNodeRef, isOver } = useDroppable({ id })
+  const textAccent = accent.replace('bg-', 'text-')
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex w-72 shrink-0 flex-col rounded-xl bg-slate-50/70 p-2.5 ${
+      className={`flex w-72 min-w-[280px] shrink-0 flex-col rounded-xl bg-slate-50 p-3 ${
         isOver ? 'ring-2 ring-brand-300' : ''
       }`}
     >
       <div className="mb-2 flex items-center gap-2 px-1">
         <span className={`h-2 w-2 rounded-full ${accent}`} />
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <p className={`text-[11px] font-bold uppercase tracking-wide ${textAccent}`}>{label}</p>
         <span className="ml-auto rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
           {count}
         </span>

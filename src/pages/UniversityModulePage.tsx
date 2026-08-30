@@ -74,8 +74,8 @@ export function UniversityModulePage() {
       </button>
 
       <div>
-        <h1 className="text-xl font-semibold text-slate-800">{module.title}</h1>
-        <p className="text-sm text-slate-400">{module.description}</p>
+        <h1 className="text-2xl font-bold text-slate-900">{module.title}</h1>
+        <p className="text-sm text-slate-500">{module.description}</p>
       </div>
 
       {existingProgress?.completed && (

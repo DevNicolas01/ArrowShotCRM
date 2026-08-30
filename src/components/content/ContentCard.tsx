@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Avatar } from '../ui/Avatar'
 import { Badge } from '../ui/Badge'
 import { CONTENT_PILLAR_LABEL, CONTENT_FORMAT_LABEL, CONTENT_TYPE_LABEL, type Content } from '../../types/content'
+import { clientHashColor } from '../../utils/clientColor'
 import type { AppUser, Client } from '../../types'
 
 const FORMAT_ICON: Record<Content['type'], LucideIcon> = {
@@ -17,24 +18,21 @@ const FORMAT_ICON: Record<Content['type'], LucideIcon> = {
   other: Share2,
 }
 
-// vermelho=Dor/Solução, azul=Autoridade, verde=Prova Social, amarelo=Bastidores, roxo=Educativo
+// vermelho=Dor/Solução, azul=Autoridade, verde=Prova Social, âmbar=Bastidores, roxo=Educativo
 const PILLAR_COLOR: Record<NonNullable<Content['pillar']>, string> = {
   dor_solucao: 'bg-red-50 text-red-600',
   autoridade: 'bg-blue-50 text-blue-600',
   prova_social: 'bg-emerald-50 text-emerald-600',
   bastidores: 'bg-amber-50 text-amber-600',
-  educativo: 'bg-purple-50 text-purple-600',
+  educativo: 'bg-violet-50 text-violet-600',
 }
 
-const CLIENT_NAME_COLORS = [
-  'text-brand-600', 'text-blue-600', 'text-emerald-600', 'text-amber-600',
-  'text-rose-600', 'text-cyan-600', 'text-fuchsia-600', 'text-lime-700',
-]
-
-function colorForClient(seed: string) {
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash)
-  return CLIENT_NAME_COLORS[Math.abs(hash) % CLIENT_NAME_COLORS.length]
+const PILLAR_BORDER: Record<NonNullable<Content['pillar']>, string> = {
+  dor_solucao: 'border-l-red-500',
+  autoridade: 'border-l-blue-500',
+  prova_social: 'border-l-emerald-500',
+  bastidores: 'border-l-amber-500',
+  educativo: 'border-l-violet-500',
 }
 
 export function ContentCard({
@@ -59,14 +57,14 @@ export function ContentCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`cursor-pointer rounded-lg border border-slate-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${
-        isDragging ? 'opacity-40' : ''
-      }`}
+      className={`cursor-pointer rounded-[10px] border border-slate-100 bg-white p-[14px] shadow-sm transition-all duration-150 ease-in-out hover:shadow-md ${
+        content.pillar ? `border-l-4 ${PILLAR_BORDER[content.pillar]}` : ''
+      } ${isDragging ? 'opacity-40' : ''}`}
     >
       {client && (
-        <p className={`mb-1 truncate text-[11px] font-medium ${colorForClient(client.id)}`}>{client.companyName}</p>
+        <p className={`mb-1 truncate text-[11px] font-medium ${clientHashColor(client.id)}`}>{client.companyName}</p>
       )}
-      <p className="text-sm font-medium text-slate-800">{content.title}</p>
+      <p className="text-sm font-semibold text-slate-900">{content.title}</p>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <Badge className="bg-slate-100 text-slate-500">

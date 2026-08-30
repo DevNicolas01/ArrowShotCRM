@@ -5,24 +5,23 @@
   --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   --font-display: "Playfair Display", Georgia, serif;
 
-  /* Arrow Shot brand blue, anchored to the real marks used on
-     marketingparalimpeza.com.br: --blue:#004AAD (600) / --blue-bright:#4A8FE0 (400). */
-  --color-brand-50: #eef4fc;
-  --color-brand-100: #dce9f9;
-  --color-brand-200: #b9d3f3;
-  --color-brand-300: #8fb8ea;
-  --color-brand-400: #4a8fe0;
-  --color-brand-500: #1f6fce;
-  --color-brand-600: #004aad;
-  --color-brand-700: #003c8c;
-  --color-brand-800: #002f6e;
-  --color-brand-900: #002451;
+  /* Primary blue used for buttons/highlights across the app. */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
 
-  /* Dark navy surfaces from the same site, used for the sidebar/login. */
-  --color-navy-950: #0a0e13;
-  --color-navy-900: #121821;
-  --color-navy-800: #1a222c;
-  --color-navy-700: #232c37;
+  /* Dark navy surfaces used for the sidebar/login. */
+  --color-navy-950: #0f172a;
+  --color-navy-900: #16213a;
+  --color-navy-800: #1e293b;
+  --color-navy-700: #334155;
 }
 
 :root {
@@ -45,16 +44,16 @@ body {
 
 /* Thin scrollbars, ClickUp-ish */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 8px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: #94a3b8;
 }

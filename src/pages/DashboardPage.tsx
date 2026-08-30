@@ -61,35 +61,45 @@ function clientServiceLabel(client: Client) {
   return '—'
 }
 
+type WidgetColor = 'red' | 'blue' | 'amber' | 'violet' | 'emerald' | 'slate'
+
+const COLOR_STYLES: Record<WidgetColor, { border: string; tintBg: string; count: string }> = {
+  red: { border: 'border-l-red-500', tintBg: 'bg-red-50', count: 'text-red-600' },
+  blue: { border: 'border-l-blue-500', tintBg: 'bg-blue-50', count: 'text-blue-600' },
+  amber: { border: 'border-l-amber-500', tintBg: 'bg-amber-50', count: 'text-amber-600' },
+  violet: { border: 'border-l-violet-500', tintBg: 'bg-violet-50', count: 'text-violet-600' },
+  emerald: { border: 'border-l-emerald-500', tintBg: 'bg-emerald-50', count: 'text-emerald-600' },
+  slate: { border: 'border-l-slate-200', tintBg: 'bg-white', count: 'text-slate-400' },
+}
+
 function SectionCard({
   title,
   icon,
   accent,
   count,
-  urgency,
+  color = 'slate',
+  emphasizeOnCount,
   children,
 }: {
   title: string
   icon: React.ReactNode
   accent: string
   count: number
-  /** 'high' = overdue-style red emphasis, 'medium' = today-style blue emphasis, applied only when count > 0. */
-  urgency?: 'high' | 'medium'
+  /** Left-border (and, when emphasized, background) color — the widget's status identity. */
+  color?: WidgetColor
+  /** When true, count > 0 also tints the background and makes the count large/bold —
+   *  reserved for the cards that need to actively grab attention (atrasadas/hoje/próximas). */
+  emphasizeOnCount?: boolean
   children: React.ReactNode
 }) {
-  const emphasized = !!urgency && count > 0
+  const emphasized = !!emphasizeOnCount && count > 0
+  const styles = COLOR_STYLES[color]
 
-  const wrapperClass = !emphasized
-    ? 'flex flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm'
-    : urgency === 'high'
-      ? 'flex flex-col rounded-xl border-2 border-red-300 bg-red-50 p-4 shadow-md shadow-red-200/60'
-      : 'flex flex-col rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm shadow-blue-200/40'
+  const wrapperClass = emphasized
+    ? `flex flex-col rounded-xl border-l-4 ${styles.border} ${styles.tintBg} p-5 shadow-md transition-all duration-150 ease-in-out`
+    : `flex flex-col rounded-xl border border-slate-100 border-l-4 ${styles.border} bg-white p-5 shadow-sm transition-all duration-150 ease-in-out`
 
-  const countClass = !emphasized
-    ? 'ml-auto text-xs font-medium text-slate-400'
-    : urgency === 'high'
-      ? 'ml-auto text-lg font-bold text-red-600'
-      : 'ml-auto text-base font-bold text-blue-600'
+  const countClass = emphasized ? `ml-auto text-lg font-bold ${styles.count}` : 'ml-auto text-xs font-medium text-slate-400'
 
   return (
     <div className={wrapperClass}>
@@ -228,8 +238,8 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-800">Dashboard</h1>
-        <p className="text-sm text-slate-400">Visão geral do que precisa da sua atenção hoje.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <p className="text-sm text-slate-500">Visão geral do que precisa da sua atenção hoje.</p>
       </div>
 
       {allZero && !expanded ? (
@@ -268,7 +278,8 @@ export function DashboardPage() {
                       icon={<Clock size={14} className="text-white" />}
                       accent="bg-blue-500"
                       count={buckets.today.length}
-                      urgency="medium"
+                      color="blue"
+                      emphasizeOnCount
                     >
                       {buckets.today.length === 0 ? (
                         <EmptyState title="Nada para hoje" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
@@ -285,7 +296,8 @@ export function DashboardPage() {
                       icon={<AlertTriangle size={14} className="text-white" />}
                       accent="bg-red-500"
                       count={buckets.overdue.length}
-                      urgency="high"
+                      color="red"
+                      emphasizeOnCount
                     >
                       {buckets.overdue.length === 0 ? (
                         <EmptyState title="Nenhuma pendência" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
@@ -300,8 +312,10 @@ export function DashboardPage() {
                       key="upcoming"
                       title="Próximas (7 dias)"
                       icon={<CheckCircle2 size={14} className="text-white" />}
-                      accent="bg-emerald-500"
+                      accent="bg-amber-500"
                       count={buckets.upcoming.length}
+                      color="amber"
+                      emphasizeOnCount
                     >
                       {buckets.upcoming.length === 0 ? (
                         <EmptyState title="Nada agendado" action={<AddTaskAction onClick={() => setTaskModalOpen(true)} />} />
@@ -316,8 +330,9 @@ export function DashboardPage() {
                       key="inProduction"
                       title="Em produção"
                       icon={<Sparkles size={14} className="text-white" />}
-                      accent="bg-brand-500"
+                      accent="bg-blue-500"
                       count={buckets.inProduction.length}
+                      color="blue"
                     >
                       {buckets.inProduction.length === 0 ? (
                         <EmptyState title="Nada em produção" action={<AddContentAction onClick={() => setContentModalOpen(true)} />} />
@@ -332,8 +347,9 @@ export function DashboardPage() {
                       key="waitingApproval"
                       title="Aguardando aprovação"
                       icon={<Send size={14} className="text-white" />}
-                      accent="bg-amber-500"
+                      accent="bg-violet-500"
                       count={buckets.waitingApproval.length}
+                      color="violet"
                     >
                       {buckets.waitingApproval.length === 0 ? (
                         <EmptyState title="Nada pendente" action={<AddContentAction onClick={() => setContentModalOpen(true)} />} />
@@ -348,8 +364,9 @@ export function DashboardPage() {
                       key="approved"
                       title="Conteúdos aprovados"
                       icon={<ThumbsUp size={14} className="text-white" />}
-                      accent="bg-teal-500"
+                      accent="bg-emerald-500"
                       count={buckets.approved.length}
+                      color="emerald"
                     >
                       {buckets.approved.length === 0 ? (
                         <EmptyState title="Nada aprovado ainda" />
@@ -367,7 +384,7 @@ export function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <SectionCard title="Próximas publicações" icon={<CalendarDays size={14} className="text-white" />} accent="bg-fuchsia-500" count={buckets.nextPublications.length}>
+        <SectionCard title="Próximas publicações" icon={<CalendarDays size={14} className="text-white" />} accent="bg-violet-500" color="violet" count={buckets.nextPublications.length}>
           {buckets.nextPublications.length === 0 ? (
             <EmptyState title="Nenhuma publicação agendada" />
           ) : (
@@ -377,37 +394,47 @@ export function DashboardPage() {
           )}
         </SectionCard>
 
-        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
           <p className="mb-3 text-sm font-semibold text-slate-700">Resumo por cliente</p>
           {clientSummary.length === 0 ? (
             <EmptyState title="Nenhum cliente ativo" />
           ) : (
-            <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
-              {clientSummary.map(({ client, health, service, ownerName, nextTask }) => (
-                <button
-                  key={client.id}
-                  onClick={() => navigate(`/clientes/${client.id}`)}
-                  className="flex items-start gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50"
-                >
-                  <span
-                    title={HEALTH_LABEL[health]}
-                    className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${HEALTH_DOT[health]}`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-slate-700">{client.companyName}</p>
-                    <p className="truncate text-xs text-slate-400">
-                      {service} · {ownerName}
-                      {nextTask && (
-                        <>
-                          {' · '}
-                          {nextTask.title}
-                          {nextTask.dueDate && ` (${format(nextTask.dueDate.toDate(), 'dd MMM', { locale: ptBR })})`}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </button>
-              ))}
+            <div className="max-h-80 overflow-y-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-white text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  <tr>
+                    <th className="w-6 py-1.5"></th>
+                    <th className="py-1.5 pr-2 font-semibold">Cliente</th>
+                    <th className="py-1.5 pr-2 font-semibold">Serviço</th>
+                    <th className="py-1.5 pr-2 font-semibold">Responsável</th>
+                    <th className="py-1.5 pr-2 font-semibold">Próxima tarefa</th>
+                    <th className="py-1.5 font-semibold">Prazo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clientSummary.map(({ client, health, service, ownerName, nextTask }) => {
+                    const overdueTask = nextTask?.dueDate && isPast(nextTask.dueDate.toDate()) && !isToday(nextTask.dueDate.toDate())
+                    return (
+                      <tr
+                        key={client.id}
+                        onClick={() => navigate(`/clientes/${client.id}`)}
+                        className="cursor-pointer border-t border-slate-50 text-slate-700 transition-colors duration-150 ease-in-out hover:bg-slate-50"
+                      >
+                        <td className="py-2">
+                          <span title={HEALTH_LABEL[health]} className={`block h-2.5 w-2.5 rounded-full ${HEALTH_DOT[health]}`} />
+                        </td>
+                        <td className="max-w-[140px] truncate py-2 pr-2 font-medium">{client.companyName}</td>
+                        <td className="py-2 pr-2 text-slate-500">{service}</td>
+                        <td className="py-2 pr-2 text-slate-500">{ownerName}</td>
+                        <td className="max-w-[160px] truncate py-2 pr-2 text-slate-500">{nextTask?.title ?? '—'}</td>
+                        <td className={`py-2 text-xs ${overdueTask ? 'font-bold text-red-600' : 'text-slate-400'}`}>
+                          {nextTask?.dueDate ? format(nextTask.dueDate.toDate(), 'dd MMM', { locale: ptBR }) : '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

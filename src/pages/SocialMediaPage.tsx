@@ -24,7 +24,7 @@ const ACCENTS: Record<ContentStatus, string> = {
   ideas: 'bg-slate-400',
   production: 'bg-blue-500',
   review: 'bg-amber-500',
-  waiting_client: 'bg-fuchsia-500',
+  waiting_client: 'bg-violet-500',
   approved: 'bg-teal-500',
   scheduled: 'bg-indigo-500',
   published: 'bg-emerald-500',
@@ -61,14 +61,14 @@ export function SocialMediaPage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Social Media</h1>
-          <p className="text-sm text-slate-400">Fluxo de produção de conteúdo, da ideia à publicação.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Social Media</h1>
+          <p className="text-sm text-slate-500">Fluxo de produção de conteúdo, da ideia à publicação.</p>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+            className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           >
             <option value="">Todos os clientes</option>
             {clients.map((c) => (
@@ -78,7 +78,7 @@ export function SocialMediaPage() {
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+            className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           >
             <option value="">Todos os responsáveis</option>
             {users.map((u) => (
@@ -88,7 +88,7 @@ export function SocialMediaPage() {
           <select
             value={formatFilter}
             onChange={(e) => setFormatFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm"
+            className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
           >
             <option value="">Todos os formatos</option>
             {FORMAT_FILTER_OPTIONS.map((t) => (

@@ -23,8 +23,8 @@ export function UniversityPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Universidade Arrow Shot</h1>
-          <p className="text-sm text-slate-400">Trilhas de treinamento para novos e atuais funcionários.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Universidade Arrow Shot</h1>
+          <p className="text-sm text-slate-500">Trilhas de treinamento para novos e atuais funcionários.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" icon={<TrendingUp size={14} />} onClick={() => navigate('/universidade/progresso')}>

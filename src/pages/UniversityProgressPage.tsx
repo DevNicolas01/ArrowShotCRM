@@ -27,8 +27,8 @@ export function UniversityProgressPage() {
       </button>
 
       <div>
-        <h1 className="text-xl font-semibold text-slate-800">Meu Progresso</h1>
-        <p className="text-sm text-slate-400">Módulos concluídos, pendentes e notas por trilha.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Meu Progresso</h1>
+        <p className="text-sm text-slate-500">Módulos concluídos, pendentes e notas por trilha.</p>
       </div>
 
       {loadingTrails || loadingProgress ? (

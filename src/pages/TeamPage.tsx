@@ -29,8 +29,8 @@ export function TeamPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-800">Equipe</h1>
-          <p className="text-sm text-slate-400">Perfis, cargos, rotinas e reuniões da equipe Arrow Shot.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Equipe</h1>
+          <p className="text-sm text-slate-500">Perfis, cargos, rotinas e reuniões da equipe Arrow Shot.</p>
         </div>
         <Button size="sm" icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Novo membro
