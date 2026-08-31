@@ -18,9 +18,10 @@ export type TaskStatus =
   | 'planning'
   | 'active'
 
-/** Which Kanban board a task shows up on (see KanbanPage). Optional — tasks
- *  outside these 3 flows (ex: Ativação/Materiais de Social Media) simply
- *  don't appear in the Kanban, only in the Tarefas list and client tabs. */
+/** Which workflow a task belongs to — drives the status vocabulary shown in
+ *  TaskDrawer/TaskFormModal (see ONBOARDING_BOARD_STATUS_ORDER /
+ *  GENERIC_BOARD_STATUS_ORDER below). Optional — tasks outside these 3 flows
+ *  (ex: Ativação/Materiais de Social Media) just use the generic statuses. */
 export type TaskBoard = 'onboarding' | 'paid_traffic' | 'cs'
 
 export const TASK_BOARD_LABEL: Record<TaskBoard, string> = {

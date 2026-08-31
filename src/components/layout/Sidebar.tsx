@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Users,
   CheckSquare,
-  Kanban,
   Sparkles,
   CalendarDays,
   Megaphone,
@@ -28,7 +27,6 @@ const mainNav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/tarefas', label: 'Tarefas', icon: CheckSquare },
-  { to: '/kanban', label: 'Kanban', icon: Kanban },
   { to: '/social-media', label: 'Social Media', icon: Sparkles },
   { to: '/calendario', label: 'Calendário', icon: CalendarDays },
 ]

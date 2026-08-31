@@ -4,7 +4,7 @@ import type { Task, TaskStatus } from '../types'
 import { collectionService } from './firestore'
 import { logActivity } from './activityService'
 import { createNotification } from './notificationService'
-import { TASK_STATUS_LABEL, nextRecurrenceDate } from '../types/task'
+import { nextRecurrenceDate } from '../types/task'
 
 const COLLECTION = 'tasks'
 const base = collectionService<Task>(COLLECTION)
@@ -56,29 +56,6 @@ export async function updateTask(id: string, data: Partial<Task>, userId: string
         : `${userName} atribuiu uma tarefa a você`,
       entityType: 'task',
       entityId: id,
-    })
-  }
-}
-
-/** Called on kanban drag-and-drop. Persists immediately and logs a focused
- *  status-change activity instead of a generic "updated" one. */
-export async function moveTaskStatus(
-  task: Task,
-  newStatus: TaskStatus,
-  newOrder: number,
-  userId: string,
-  userName: string
-) {
-  await base.update(task.id, { status: newStatus, order: newOrder }, userId)
-  if (newStatus !== task.status) {
-    await logActivity({
-      entityType: 'task',
-      entityId: task.id,
-      clientId: task.clientId,
-      action: 'status_changed',
-      message: `moveu de "${TASK_STATUS_LABEL[task.status]}" para "${TASK_STATUS_LABEL[newStatus]}"`,
-      userId,
-      userName,
     })
   }
 }

@@ -8,7 +8,6 @@ import { DashboardPage } from './pages/DashboardPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { TasksPage } from './pages/TasksPage'
-import { KanbanPage } from './pages/KanbanPage'
 import { SocialMediaPage } from './pages/SocialMediaPage'
 import { CalendarPage } from './pages/CalendarPage'
 import { TeamPage } from './pages/TeamPage'
@@ -38,7 +37,6 @@ function App() {
             <Route path="/clientes" element={<ClientsPage />} />
             <Route path="/clientes/:id" element={<ClientDetailPage />} />
             <Route path="/tarefas" element={<TasksPage />} />
-            <Route path="/kanban" element={<KanbanPage />} />
             <Route path="/social-media" element={<SocialMediaPage />} />
             <Route path="/calendario" element={<CalendarPage />} />
             <Route
