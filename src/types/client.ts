@@ -46,7 +46,9 @@ export interface ClientBriefing {
 
 export interface Client extends BaseDoc {
   companyName: string
-  contactName: string
+  /** @deprecated the client form no longer collects this — kept only so
+   *  older docs still display it until they're re-saved. */
+  contactName?: string
   whatsapp?: string
   email?: string
   instagram?: string
@@ -98,7 +100,7 @@ export const CLIENT_STATUS_LABEL: Record<ClientStatus, string> = {
   active: 'Ativo',
   paused: 'Pausado',
   churned: 'Encerrado',
-  prospect: 'Prospecto',
+  prospect: 'Onboarding',
 }
 
 export const CLIENT_PACKAGE_LABEL: Record<ClientPackage, string> = {

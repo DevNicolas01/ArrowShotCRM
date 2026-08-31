@@ -22,7 +22,7 @@ export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfi
 
 export const auth = getAuth(app)
 
-// Offline persistence with multi-tab support keeps the Kanban/board usable on
+// Offline persistence with multi-tab support keeps board/list views usable on
 // flaky connections and avoids "missing index" surprises during dev reloads.
 // ignoreUndefinedProperties: forms across the app send `undefined` for empty
 // optional fields (e.g. a client with no Instagram) — Firestore rejects that

@@ -9,30 +9,23 @@ import { useUsers } from '../../hooks/useUsers'
 import { createClient, updateClient } from '../../services/clientService'
 import { createOnboardingTasks } from '../../services/onboardingTemplates'
 import { createPaidTrafficTasks, createSharedOnboardingTasks } from '../../services/paidTrafficTemplates'
+import { maskPhone, isPhoneComplete, maskDocument, maskCurrencyInput, parseCurrencyToNumber } from '../../utils/masks'
 import {
   CLIENT_PACKAGE_LABEL,
-  CLIENT_STATUS_LABEL,
   STYLE_CATALOG_DESCRIPTION,
   STYLE_CATALOG_LABEL,
   getClientOwnerIds,
   type Client,
   type ClientPackage,
-  type ClientStatus,
   type StyleCatalog,
 } from '../../types/client'
 
 const EMPTY = {
   companyName: '',
-  contactName: '',
   whatsapp: '',
-  email: '',
-  instagram: '',
-  facebook: '',
-  website: '',
   city: '',
   segment: '',
   document: '',
-  status: 'prospect' as ClientStatus,
   package: '' as ClientPackage | '',
   styleCatalog: '' as StyleCatalog | '',
   ownerIds: [] as string[],
@@ -69,20 +62,14 @@ export function ClientFormModal({
     if (client) {
       setForm({
         companyName: client.companyName,
-        contactName: client.contactName,
-        whatsapp: client.whatsapp ?? '',
-        email: client.email ?? '',
-        instagram: client.instagram ?? '',
-        facebook: client.facebook ?? '',
-        website: client.website ?? '',
+        whatsapp: client.whatsapp ? maskPhone(client.whatsapp) : '',
         city: client.city ?? '',
         segment: client.segment ?? '',
-        document: client.document ?? '',
-        status: client.status,
+        document: client.document ? maskDocument(client.document) : '',
         package: client.package ?? '',
         styleCatalog: client.styleCatalog ?? '',
         ownerIds: getClientOwnerIds(client),
-        monthlyValue: client.monthlyValue != null ? String(client.monthlyValue) : '',
+        monthlyValue: client.monthlyValue != null ? maskCurrencyInput(String(Math.round(client.monthlyValue * 100))) : '',
         contractStartDate: toDateInputValue(client.contractStartDate),
         notes: client.notes ?? '',
         socialMedia: client.modules?.socialMedia ?? false,
@@ -105,6 +92,8 @@ export function ClientFormModal({
       ownerIds: f.ownerIds.includes(uid) ? f.ownerIds.filter((id) => id !== uid) : [...f.ownerIds, uid],
     }))
 
+  const whatsappIncomplete = form.whatsapp.trim() !== '' && !isPhoneComplete(form.whatsapp)
+
   const autoTaskSummary = [
     form.socialMedia && 'Social Media: Ativação + Materiais',
     form.paidTraffic
@@ -114,26 +103,22 @@ export function ClientFormModal({
     .filter(Boolean)
     .join('; ')
 
+  const canSubmit = form.companyName.trim() !== '' && !whatsappIncomplete
+
   const handleSubmit = async () => {
-    if (!form.companyName.trim() || !profile) return
+    if (!canSubmit || !profile) return
     setSaving(true)
     try {
-      const payload = {
+      const basePayload = {
         companyName: form.companyName.trim(),
-        contactName: form.contactName.trim(),
         whatsapp: form.whatsapp || undefined,
-        email: form.email || undefined,
-        instagram: form.instagram || undefined,
-        facebook: form.facebook || undefined,
-        website: form.website || undefined,
         city: form.city || undefined,
         segment: form.segment || undefined,
         document: form.document || undefined,
-        status: form.status,
         package: form.socialMedia ? form.package || undefined : undefined,
         styleCatalog: form.socialMedia ? form.styleCatalog || undefined : undefined,
         ownerIds: form.ownerIds.length > 0 ? form.ownerIds : undefined,
-        monthlyValue: form.monthlyValue ? Number(form.monthlyValue) : undefined,
+        monthlyValue: parseCurrencyToNumber(form.monthlyValue),
         contractStartDate: form.contractStartDate ? Timestamp.fromDate(new Date(form.contractStartDate)) : null,
         notes: form.notes || undefined,
         modules: {
@@ -145,12 +130,12 @@ export function ClientFormModal({
         },
       }
       if (client) {
-        await updateClient(client.id, payload, profile.id, profile.name)
+        await updateClient(client.id, basePayload, profile.id, profile.name)
         toast.success('Cliente atualizado')
       } else {
-        const newClientId = await createClient(payload, profile.id, profile.name)
+        const newClientId = await createClient({ ...basePayload, status: 'prospect' }, profile.id, profile.name)
         if (createTasks) {
-          const newClient = { id: newClientId, companyName: payload.companyName }
+          const newClient = { id: newClientId, companyName: basePayload.companyName }
           if (form.socialMedia) {
             await createOnboardingTasks(newClient, profile.id, profile.name)
           }
@@ -160,7 +145,7 @@ export function ClientFormModal({
             await createSharedOnboardingTasks(newClient, profile.id, profile.name, users)
           }
         }
-        toast.success('Cliente cadastrado')
+        toast.success('Cliente cadastrado com sucesso')
       }
       onClose()
     } catch (err) {
@@ -177,23 +162,13 @@ export function ClientFormModal({
         <Field label="Nome da empresa" required>
           <Input autoFocus value={form.companyName} onChange={(e) => set('companyName', e.target.value)} />
         </Field>
-        <Field label="Responsável do cliente">
-          <Input value={form.contactName} onChange={(e) => set('contactName', e.target.value)} />
-        </Field>
         <Field label="WhatsApp">
-          <Input value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} placeholder="(11) 99999-9999" />
-        </Field>
-        <Field label="E-mail">
-          <Input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} />
-        </Field>
-        <Field label="Instagram">
-          <Input value={form.instagram} onChange={(e) => set('instagram', e.target.value)} placeholder="@usuario" />
-        </Field>
-        <Field label="Facebook">
-          <Input value={form.facebook} onChange={(e) => set('facebook', e.target.value)} />
-        </Field>
-        <Field label="Site">
-          <Input value={form.website} onChange={(e) => set('website', e.target.value)} />
+          <Input
+            value={form.whatsapp}
+            onChange={(e) => set('whatsapp', maskPhone(e.target.value))}
+            placeholder="(00) 00000-0000"
+          />
+          {whatsappIncomplete && <p className="mt-1 text-xs text-red-500">Número incompleto — informe DDD + número completo.</p>}
         </Field>
         <Field label="Cidade/Região">
           <Input value={form.city} onChange={(e) => set('city', e.target.value)} />
@@ -201,18 +176,15 @@ export function ClientFormModal({
         <Field label="Segmento">
           <Input value={form.segment} onChange={(e) => set('segment', e.target.value)} placeholder="Ex: Limpeza, Estética" />
         </Field>
-        <Field label="CNPJ ou CPF">
-          <Input value={form.document} onChange={(e) => set('document', e.target.value)} placeholder="00.000.000/0000-00" />
-        </Field>
-        <Field label="Status">
-          <Select value={form.status} onChange={(e) => set('status', e.target.value as ClientStatus)}>
-            {Object.entries(CLIENT_STATUS_LABEL).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        <div className="sm:col-span-2">
+          <Field label="CNPJ ou CPF">
+            <Input
+              value={form.document}
+              onChange={(e) => set('document', maskDocument(e.target.value))}
+              placeholder="000.000.000-00"
+            />
+          </Field>
+        </div>
 
         <div className="flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Serviços contratados</p>
@@ -259,7 +231,7 @@ export function ClientFormModal({
             Social Media
           </label>
           {form.socialMedia && (
-            <div className="ml-6">
+            <div className="ml-6 flex flex-col gap-2.5">
               <Field label="Pacote">
                 <Select value={form.package} onChange={(e) => set('package', e.target.value as ClientPackage)}>
                   <option value="">Nenhum</option>
@@ -270,48 +242,36 @@ export function ClientFormModal({
                   ))}
                 </Select>
               </Field>
+              <Field label="Catálogo de estilo">
+                <Select
+                  value={form.styleCatalog}
+                  onChange={(e) => set('styleCatalog', (e.target.value ? Number(e.target.value) : '') as StyleCatalog | '')}
+                >
+                  <option value="">Nenhum escolhido ainda</option>
+                  {Object.entries(STYLE_CATALOG_LABEL).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
+                </Select>
+                {form.styleCatalog && (
+                  <p className="mt-1 text-xs text-slate-400">{STYLE_CATALOG_DESCRIPTION[form.styleCatalog]}</p>
+                )}
+              </Field>
             </div>
           )}
         </div>
 
-        <Field label="Valor mensal do contrato">
+        <Field label="Investimento mensal na plataforma (R$)">
           <Input
-            type="number"
-            min="0"
-            step="0.01"
             value={form.monthlyValue}
-            onChange={(e) => set('monthlyValue', e.target.value)}
+            onChange={(e) => set('monthlyValue', maskCurrencyInput(e.target.value))}
             placeholder="R$ 0,00"
           />
         </Field>
-        <Field label="Data de início do contrato">
-          <Input
-            type="date"
-            value={form.contractStartDate}
-            onChange={(e) => set('contractStartDate', e.target.value)}
-          />
+        <Field label="Data de início">
+          <Input type="date" value={form.contractStartDate} onChange={(e) => set('contractStartDate', e.target.value)} />
         </Field>
-
-        {form.socialMedia && (
-          <div className="sm:col-span-2">
-            <Field label="Catálogo de estilo">
-              <Select
-                value={form.styleCatalog}
-                onChange={(e) => set('styleCatalog', (e.target.value ? Number(e.target.value) : '') as StyleCatalog | '')}
-              >
-                <option value="">Nenhum escolhido ainda</option>
-                {Object.entries(STYLE_CATALOG_LABEL).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </Select>
-              {form.styleCatalog && (
-                <p className="mt-1 text-xs text-slate-400">{STYLE_CATALOG_DESCRIPTION[form.styleCatalog]}</p>
-              )}
-            </Field>
-          </div>
-        )}
 
         <div className="sm:col-span-2">
           <span className="mb-1 block text-xs font-medium text-slate-500">Responsável interno</span>
@@ -355,7 +315,7 @@ export function ClientFormModal({
         <Button variant="secondary" onClick={onClose}>
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} loading={saving} disabled={!form.companyName.trim()}>
+        <Button onClick={handleSubmit} loading={saving} disabled={!canSubmit}>
           {client ? 'Salvar' : 'Cadastrar'}
         </Button>
       </div>
