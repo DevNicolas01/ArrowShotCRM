@@ -12,6 +12,7 @@ import { Badge } from '../components/ui/Badge'
 import { Avatar } from '../components/ui/Avatar'
 import { EmptyState } from '../components/ui/EmptyState'
 import { TASK_PRIORITY_COLOR, TASK_PRIORITY_LABEL, TASK_STATUS_LABEL, formatRecurrence, type Task } from '../types/task'
+import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
 
 function isOverdue(task: Task): boolean {
   if (!task.dueDate || task.status === 'done' || task.status === 'active') return false
@@ -27,9 +28,11 @@ function rowTint(task: Task): string {
 }
 
 export function TasksPage() {
-  const { data: tasks, loading } = useAllTasks()
+  const { data: allTasks, loading } = useAllTasks()
   const { data: clients } = useClients()
   const { data: users } = useUsers()
+  const { canSeeAllTasks, viewerId } = useTaskVisibility()
+  const tasks = useMemo(() => filterVisibleTasks(allTasks, canSeeAllTasks, viewerId), [allTasks, canSeeAllTasks, viewerId])
 
   const [search, setSearch] = useState('')
   const [clientFilter, setClientFilter] = useState('')

@@ -21,6 +21,7 @@ import type { Task } from '../types/task'
 import type { Content } from '../types/content'
 import type { Client } from '../types/client'
 import type { AppUser } from '../types'
+import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
 
 type ClientHealth = 'green' | 'yellow' | 'red'
 
@@ -333,12 +334,14 @@ export function DashboardPage() {
   const { data: contents } = useAllContents()
   const { data: clients } = useClients()
   const { data: users } = useUsers()
+  const { canSeeAllTasks, viewerId } = useTaskVisibility()
+  const visibleTasks = useMemo(() => filterVisibleTasks(tasks, canSeeAllTasks, viewerId), [tasks, canSeeAllTasks, viewerId])
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [openContentId, setOpenContentId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [contentModalOpen, setContentModalOpen] = useState(false)
-  const openTask = tasks.find((t) => t.id === openTaskId) ?? null
+  const openTask = visibleTasks.find((t) => t.id === openTaskId) ?? null
   const openContent = contents.find((c) => c.id === openContentId) ?? null
 
   const todayLabel = useMemo(() => {
@@ -347,7 +350,7 @@ export function DashboardPage() {
   }, [])
 
   const buckets = useMemo(() => {
-    const openTasks = tasks.filter((t) => t.status !== 'done')
+    const openTasks = visibleTasks.filter((t) => t.status !== 'done')
     const today = openTasks.filter((t) => t.dueDate && isToday(t.dueDate.toDate()))
     const overdue = openTasks
       .filter((t) => t.dueDate && isPast(t.dueDate.toDate()) && !isToday(t.dueDate.toDate()))
@@ -368,7 +371,7 @@ export function DashboardPage() {
       .slice(0, 6)
 
     return { today, overdue, upcoming, inProduction, waitingApproval, approved, nextPublications }
-  }, [tasks, contents])
+  }, [visibleTasks, contents])
 
   const allZero =
     buckets.today.length === 0 &&
@@ -639,10 +642,12 @@ export function DashboardPage() {
                           <ServicePill service={service} />
                         </td>
                         <td className="py-2 pr-2 align-middle text-slate-500">{ownerName}</td>
-                        <td className="max-w-[160px] truncate py-2 pr-2 align-middle text-slate-500">{nextTask?.title ?? '—'}</td>
-                        <td className={`py-2 pr-2 align-middle text-xs ${overdueTask ? 'font-bold text-red-600' : 'text-slate-400'}`}>
-                          {overdueTask && <AlertTriangle size={11} className="mr-1 inline -mt-0.5" />}
-                          {nextTask?.dueDate ? format(nextTask.dueDate.toDate(), 'dd MMM', { locale: ptBR }) : '—'}
+                        <td className="max-w-[160px] truncate py-2 pr-2 align-middle text-slate-500">
+                          {canSeeAllTasks ? (nextTask?.title ?? '—') : '—'}
+                        </td>
+                        <td className={`py-2 pr-2 align-middle text-xs ${canSeeAllTasks && overdueTask ? 'font-bold text-red-600' : 'text-slate-400'}`}>
+                          {canSeeAllTasks && overdueTask && <AlertTriangle size={11} className="mr-1 inline -mt-0.5" />}
+                          {canSeeAllTasks && nextTask?.dueDate ? format(nextTask.dueDate.toDate(), 'dd MMM', { locale: ptBR }) : '—'}
                         </td>
                       </tr>
                     )

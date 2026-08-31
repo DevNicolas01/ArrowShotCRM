@@ -1,4 +1,9 @@
-import { createTask } from './taskService'
+import { Timestamp } from 'firebase/firestore'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { createTask, getClientTasks } from './taskService'
+import { createCalendarEvent } from './calendarService'
+import { createNotification } from './notificationService'
 import type { Client } from '../types/client'
 import type { AppUser } from '../types/user'
 import type { ChecklistItem, TaskPriority, TaskRecurrence, WorkflowStepKey } from '../types/task'
@@ -16,7 +21,8 @@ function toChecklist(items: string[]): ChecklistItem[] {
   return items.map((text) => ({ id: crypto.randomUUID(), text, done: false }))
 }
 
-function onboardingItems(companyName: string): string[] {
+/** Contrato, Drive e grupo de WhatsApp — responsabilidade de Bruno. */
+function onboardingBrunoItems(companyName: string): string[] {
   return [
     'Coletar dados para contrato (nome completo, CNPJ, endereço)',
     'Elaborar contrato usando modelo padrão',
@@ -27,10 +33,11 @@ function onboardingItems(companyName: string): string[] {
     'Colocar o cliente como ADM do grupo',
     `Renomear o grupo para "Arrow Shot & ${companyName}"`,
     'Compartilhar link da pasta Drive no grupo',
-    'Enviar mensagem de boas-vindas no grupo',
-    'Agendar reunião de briefing e acessos',
   ]
 }
+
+/** Boas-vindas e agendamento do briefing — responsabilidade de Janilson (CS). */
+const ONBOARDING_JANILSON_ITEMS = ['Enviar mensagem de boas-vindas no grupo', 'Agendar reunião de briefing e acessos']
 
 const BRIEFING_ACESSOS_ITEMS = [
   'Enviar formulário de briefing ao cliente antes da call',
@@ -138,17 +145,32 @@ interface StepDef {
   priority: TaskPriority
   /** 'creator' assigns to whoever triggered the step; a name assigns via
    *  findUserIdByName (falls back to unassigned if nobody matches yet). */
-  assignee: 'creator' | 'Janilson' | 'Ciane'
+  assignee: 'creator' | 'Bruno' | 'Janilson' | 'Ciane'
   recurrence?: TaskRecurrence
+  /** This step's completion only advances the workflow once every one of
+   *  these sibling steps (same client) is also done — used to split one
+   *  logical step into parallel sub-tasks for different people (e.g.
+   *  Onboarding: Bruno's part + Janilson's part) without either one alone
+   *  triggering the next step prematurely. */
+  waitForSiblings?: WorkflowStepKey[]
 }
 
 const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
-  pt_onboarding: {
-    title: (name) => `Onboarding — ${name}`,
-    description: 'Checklist padrão de onboarding de cliente novo.',
-    checklist: onboardingItems,
+  pt_onboarding_bruno: {
+    title: (name) => `Onboarding (Contrato e Acessos) — ${name}`,
+    description: 'Checklist padrão de onboarding de cliente novo — contrato, Drive e grupo de WhatsApp.',
+    checklist: onboardingBrunoItems,
+    priority: 'high',
+    assignee: 'Bruno',
+    waitForSiblings: ['pt_onboarding_janilson'],
+  },
+  pt_onboarding_janilson: {
+    title: (name) => `Onboarding (Boas-vindas e Briefing) — ${name}`,
+    description: 'Checklist padrão de onboarding de cliente novo — boas-vindas e agendamento do briefing.',
+    checklist: ONBOARDING_JANILSON_ITEMS,
     priority: 'high',
     assignee: 'Janilson',
+    waitForSiblings: ['pt_onboarding_bruno'],
   },
   pt_briefing: {
     title: (name) => `Briefing e Acessos — ${name}`,
@@ -244,7 +266,8 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
  *  the client with two of each. */
 function getNextSteps(key: WorkflowStepKey, client: Pick<Client, 'modules'>): WorkflowStepKey[] {
   switch (key) {
-    case 'pt_onboarding':
+    case 'pt_onboarding_bruno':
+    case 'pt_onboarding_janilson':
       return ['pt_briefing']
     case 'pt_briefing':
       return ['pt_planning']
@@ -299,7 +322,7 @@ export async function createInitialWorkflowTasks(
 ) {
   const base = Date.now()
   const firstSteps: WorkflowStepKey[] = []
-  if (client.modules?.paidTraffic) firstSteps.push('pt_onboarding')
+  if (client.modules?.paidTraffic) firstSteps.push('pt_onboarding_bruno', 'pt_onboarding_janilson')
   if (client.modules?.socialMedia) firstSteps.push('sm_ativacao')
 
   for (let i = 0; i < firstSteps.length; i++) {
@@ -318,9 +341,59 @@ export async function advanceClientWorkflow(
   users: AppUser[]
 ) {
   if (!task.workflowStep || !task.clientId) return
+  const def = STEP_DEFS[task.workflowStep]
+  if (def.waitForSiblings?.length) {
+    const clientTasks = await getClientTasks(task.clientId)
+    const siblingsDone = def.waitForSiblings.every((key) =>
+      clientTasks.some((t) => t.workflowStep === key && t.status === 'done')
+    )
+    if (!siblingsDone) return
+  }
+
   const nextKeys = getNextSteps(task.workflowStep, client)
   const base = Date.now()
   for (let i = 0; i < nextKeys.length; i++) {
     await createWorkflowStepTask(nextKeys[i], client, userId, userName, users, base + i)
   }
+}
+
+/** Called when the CS (Janilson) fills in and saves the briefing meeting
+ *  date on the 'pt_onboarding_janilson' step: creates the Calendário event
+ *  and notifies the whole team, per the platform's onboarding workflow. */
+export async function scheduleBriefingMeeting(
+  client: Pick<Client, 'id' | 'companyName'>,
+  meetingDate: Date,
+  meetingTime: string,
+  userId: string,
+  userName: string,
+  users: AppUser[]
+) {
+  await createCalendarEvent(
+    {
+      title: `Reunião de Briefing — ${client.companyName}`,
+      type: 'custom',
+      date: Timestamp.fromDate(meetingDate),
+      time: meetingTime || undefined,
+      clientId: client.id,
+    },
+    userId
+  )
+
+  const dateLabel = format(meetingDate, "dd/MM/yyyy", { locale: ptBR })
+  const message = `📅 Reunião de Briefing agendada — ${client.companyName}\nData: ${dateLabel} às ${meetingTime || '—'}\nAgendado por: ${userName}`
+
+  const recipientNames = ['Bruno', 'Ciane', 'Nicolas', 'Janilson']
+  const recipientIds = new Set(recipientNames.map((name) => findUserIdByName(users, name)).filter((id): id is string => !!id))
+
+  await Promise.all(
+    Array.from(recipientIds).map((recipientId) =>
+      createNotification({
+        userId: recipientId,
+        type: 'briefing_scheduled',
+        message,
+        entityType: 'client',
+        entityId: client.id,
+      })
+    )
+  )
 }

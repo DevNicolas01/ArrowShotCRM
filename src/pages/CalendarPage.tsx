@@ -14,11 +14,13 @@ import {
   format,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Sparkles, CheckSquare, Video, Plus, LogOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, CheckSquare, Video, Plus, LogOut, CalendarClock } from 'lucide-react'
 import { useAllContents } from '../hooks/useContents'
 import { useAllTasks } from '../hooks/useTasks'
 import { useClients } from '../hooks/useClients'
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar'
+import { useCalendarEvents } from '../hooks/useCalendarEvents'
+import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { ContentDrawer } from '../components/content/ContentDrawer'
 import { NewMeetingModal } from '../components/calendar/NewMeetingModal'
@@ -27,7 +29,7 @@ import { Button } from '../components/ui/Button'
 type CalItem = {
   id: string
   title: string
-  kind: 'task' | 'content' | 'meeting'
+  kind: 'task' | 'content' | 'meeting' | 'event'
   date: Date
   clientName?: string
   link?: string
@@ -37,12 +39,16 @@ const KIND_STYLE: Record<CalItem['kind'], string> = {
   content: 'bg-brand-50 text-brand-700',
   task: 'bg-blue-50 text-blue-700',
   meeting: 'bg-amber-50 text-amber-700',
+  event: 'bg-violet-50 text-violet-700',
 }
 
 export function CalendarPage() {
-  const { data: tasks } = useAllTasks()
+  const { data: allTasks } = useAllTasks()
+  const { canSeeAllTasks, viewerId } = useTaskVisibility()
+  const tasks = useMemo(() => filterVisibleTasks(allTasks, canSeeAllTasks, viewerId), [allTasks, canSeeAllTasks, viewerId])
   const { data: contents } = useAllContents()
   const { data: clients } = useClients()
+  const { data: calendarEvents } = useCalendarEvents()
   const google = useGoogleCalendar()
   const [mode, setMode] = useState<'month' | 'week'>('month')
   const [cursor, setCursor] = useState(new Date())
@@ -80,8 +86,15 @@ export function CalendarPage() {
       date: new Date(ev.start),
       link: ev.hangoutLink || ev.htmlLink,
     }))
-    return [...fromTasks, ...fromContents, ...fromMeetings]
-  }, [tasks, contents, clientMap, google.events])
+    const fromEvents: CalItem[] = calendarEvents.map((ev) => ({
+      id: ev.id,
+      title: ev.title,
+      kind: 'event',
+      date: ev.date.toDate(),
+      clientName: ev.clientId ? clientMap[ev.clientId]?.companyName : undefined,
+    }))
+    return [...fromTasks, ...fromContents, ...fromMeetings, ...fromEvents]
+  }, [tasks, contents, clientMap, google.events, calendarEvents])
 
   const rangeStart = mode === 'month' ? startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 }) : startOfWeek(cursor, { weekStartsOn: 0 })
   const rangeEnd = mode === 'month' ? endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 }) : endOfWeek(cursor, { weekStartsOn: 0 })
@@ -183,6 +196,7 @@ export function CalendarPage() {
                       {item.kind === 'content' && <Sparkles size={10} />}
                       {item.kind === 'task' && <CheckSquare size={10} />}
                       {item.kind === 'meeting' && <Video size={10} />}
+                      {item.kind === 'event' && <CalendarClock size={10} />}
                       <span className="truncate">{item.title}</span>
                     </button>
                   ))}

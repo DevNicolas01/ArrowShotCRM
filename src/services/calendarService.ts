@@ -1,4 +1,4 @@
-import { orderBy, type FirestoreError } from 'firebase/firestore'
+import { orderBy, where, getDocs, query, type FirestoreError } from 'firebase/firestore'
 import type { CalendarEvent } from '../types'
 import { collectionService } from './firestore'
 
@@ -24,4 +24,11 @@ export function subscribeCalendarEvents(
   onError?: (err: FirestoreError) => void
 ) {
   return base.subscribe([orderBy('date', 'asc')], onData, onError)
+}
+
+/** One-shot fetch (not a live listener) — used by the client-deletion
+ *  cascade, which needs a snapshot to batch-delete. */
+export async function getClientCalendarEvents(clientId: string): Promise<CalendarEvent[]> {
+  const snap = await getDocs(query(base.colRef, where('clientId', '==', clientId)))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as CalendarEvent)
 }

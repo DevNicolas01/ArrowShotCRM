@@ -8,6 +8,7 @@ export type NotificationType =
   | 'content_approved'
   | 'change_requested'
   | 'due_soon'
+  | 'briefing_scheduled'
 
 export interface AppNotification {
   id: string

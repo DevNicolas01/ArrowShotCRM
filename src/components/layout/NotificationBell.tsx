@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Bell, CheckSquare, ThumbsUp, RotateCcw, AtSign, Clock } from 'lucide-react'
+import { Bell, CheckSquare, ThumbsUp, RotateCcw, AtSign, Clock, CalendarClock } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useNotifications } from '../../hooks/useNotifications'
 import { markAllNotificationsRead, markNotificationRead } from '../../services/notificationService'
@@ -15,6 +15,7 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   content_approved: ThumbsUp,
   change_requested: RotateCcw,
   due_soon: Clock,
+  briefing_scheduled: CalendarClock,
 }
 
 export function NotificationBell() {

@@ -28,6 +28,7 @@ import { ContentFormModal } from '../components/content/ContentFormModal'
 import { CLIENT_PACKAGE_LABEL, CLIENT_STATUS_LABEL, STYLE_CATALOG_LABEL, getClientOwnerIds } from '../types/client'
 import { TASK_STATUS_LABEL } from '../types/task'
 import { CONTENT_STATUS_LABEL } from '../types/content'
+import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
 
 export function ClientDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -36,7 +37,9 @@ export function ClientDetailPage() {
   const { data: users } = useUsers()
   const client = clients.find((c) => c.id === id)
 
-  const { data: tasks } = useTasks({ clientId: id })
+  const { data: allTasks } = useTasks({ clientId: id })
+  const { canSeeAllTasks, viewerId } = useTaskVisibility()
+  const tasks = filterVisibleTasks(allTasks, canSeeAllTasks, viewerId)
   const { data: contents } = useContents({ clientId: id })
   const [editing, setEditing] = useState(false)
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)

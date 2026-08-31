@@ -74,7 +74,8 @@ export interface TaskRecurrence {
  *  its sequence are created automatically; terminal/recurring steps (the
  *  weekly/monthly ones) don't chain any further. */
 export type WorkflowStepKey =
-  | 'pt_onboarding'
+  | 'pt_onboarding_bruno'
+  | 'pt_onboarding_janilson'
   | 'pt_briefing'
   | 'pt_planning'
   | 'pt_trafego_semanal'
@@ -110,6 +111,12 @@ export interface Task extends BaseDoc {
   board?: TaskBoard
   /** See WorkflowStepKey. */
   workflowStep?: WorkflowStepKey | null
+  /** Only set on the 'pt_onboarding_janilson' step — date/time of the
+   *  briefing meeting the CS schedules with the client. Required before that
+   *  task can be marked done; saving it creates a Calendário event and
+   *  notifies the whole team (see clientWorkflowTemplates.ts). */
+  briefingMeetingDate?: Timestamp | null
+  briefingMeetingTime?: string
 }
 
 export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {

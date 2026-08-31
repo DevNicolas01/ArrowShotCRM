@@ -5,6 +5,7 @@ import { collectionService } from './firestore'
 import { logActivity } from './activityService'
 import { getClientTasks } from './taskService'
 import { getClientContents } from './contentService'
+import { getClientCalendarEvents } from './calendarService'
 
 const COLLECTION = 'clients'
 const base = collectionService<Client>(COLLECTION)
@@ -50,11 +51,16 @@ export async function updateClient(
  *  otherwise linger forever (invisible in the UI, but still counted by any
  *  code that queries the collection directly, e.g. dashboard buckets). */
 export async function deleteClient(client: Client, userId: string, userName: string) {
-  const [tasks, contents] = await Promise.all([getClientTasks(client.id), getClientContents(client.id)])
+  const [tasks, contents, calendarEvents] = await Promise.all([
+    getClientTasks(client.id),
+    getClientContents(client.id),
+    getClientCalendarEvents(client.id),
+  ])
 
   const batch = writeBatch(db)
   for (const task of tasks) batch.delete(doc(db, 'tasks', task.id))
   for (const content of contents) batch.delete(doc(db, 'contents', content.id))
+  for (const event of calendarEvents) batch.delete(doc(db, 'calendarEvents', event.id))
   batch.delete(doc(db, 'clients', client.id))
   await batch.commit()
 
@@ -63,7 +69,7 @@ export async function deleteClient(client: Client, userId: string, userName: str
     entityId: client.id,
     clientId: client.id,
     action: 'deleted',
-    message: `excluiu o cliente "${client.companyName}" (${tasks.length} tarefa(s) e ${contents.length} conteúdo(s) removidos junto)`,
+    message: `excluiu o cliente "${client.companyName}" (${tasks.length} tarefa(s), ${contents.length} conteúdo(s) e ${calendarEvents.length} evento(s) removidos junto)`,
     userId,
     userName,
   })

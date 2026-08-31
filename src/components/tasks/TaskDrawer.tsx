@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { updateTask, deleteTask, duplicateRecurringTask } from '../../services/taskService'
-import { advanceClientWorkflow } from '../../services/clientWorkflowTemplates'
+import { advanceClientWorkflow, scheduleBriefingMeeting } from '../../services/clientWorkflowTemplates'
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -35,6 +35,8 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
   const { data: clients } = useClients()
   const { data: users } = useUsers()
   const [title, setTitle] = useState(task?.title ?? '')
+  const [briefingDateInput, setBriefingDateInput] = useState(toDateInputValue(task?.briefingMeetingDate))
+  const [briefingTimeInput, setBriefingTimeInput] = useState(task?.briefingMeetingTime ?? '')
 
   if (!task || !profile) return null
 
@@ -43,6 +45,30 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
     if (data.status === 'done' && task.status !== 'done' && task.workflowStep) {
       const client = clients.find((c) => c.id === task.clientId)
       if (client) await advanceClientWorkflow(task, client, profile.id, profile.name, users)
+    }
+  }
+
+  const needsBriefingMeeting = task.workflowStep === 'pt_onboarding_janilson'
+
+  const handleStatusChange = (newStatus: Task['status']) => {
+    if (newStatus === 'done' && needsBriefingMeeting && !task.briefingMeetingDate) {
+      toast.error('Defina a data da reunião de briefing antes de concluir esta tarefa.')
+      return
+    }
+    save({ status: newStatus })
+  }
+
+  const commitBriefingMeeting = async () => {
+    if (!briefingDateInput || !briefingTimeInput) return
+    const wasEmpty = !task.briefingMeetingDate
+    const meetingDate = new Date(`${briefingDateInput}T${briefingTimeInput}`)
+    await save({ briefingMeetingDate: Timestamp.fromDate(meetingDate), briefingMeetingTime: briefingTimeInput })
+    if (wasEmpty && task.clientId) {
+      const client = clients.find((c) => c.id === task.clientId)
+      if (client) {
+        await scheduleBriefingMeeting(client, meetingDate, briefingTimeInput, profile.id, profile.name, users)
+        toast.success('Reunião de briefing agendada e equipe notificada')
+      }
     }
   }
 
@@ -80,7 +106,7 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
       <div className="flex flex-col gap-4 px-5 py-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Status">
-            <Select value={task.status} onChange={(e) => save({ status: e.target.value as Task['status'] })}>
+            <Select value={task.status} onChange={(e) => handleStatusChange(e.target.value as Task['status'])}>
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
                   {TASK_STATUS_LABEL[s]}
@@ -132,6 +158,31 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
             />
           </Field>
         </div>
+
+        {needsBriefingMeeting && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-amber-800">
+              Data da reunião de briefing <span className="text-red-500">*</span>
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                type="date"
+                value={briefingDateInput}
+                onChange={(e) => setBriefingDateInput(e.target.value)}
+                onBlur={commitBriefingMeeting}
+              />
+              <Input
+                type="time"
+                value={briefingTimeInput}
+                onChange={(e) => setBriefingTimeInput(e.target.value)}
+                onBlur={commitBriefingMeeting}
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] text-amber-700">
+              Obrigatório para concluir esta tarefa. Ao salvar, cria o evento no Calendário e notifica a equipe.
+            </p>
+          </div>
+        )}
 
         <Field label="Descrição">
           <Textarea
