@@ -5,9 +5,10 @@ import { useClients } from '../hooks/useClients'
 import { useUsers } from '../hooks/useUsers'
 import { ClientsTable } from '../components/clients/ClientsTable'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
+import { DeleteClientModal } from '../components/clients/DeleteClientModal'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
-import { CLIENT_STATUS_LABEL, getClientOwnerIds } from '../types/client'
+import { CLIENT_STATUS_LABEL, getClientOwnerIds, type Client } from '../types/client'
 
 export function ClientsPage() {
   const navigate = useNavigate()
@@ -16,6 +17,7 @@ export function ClientsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [creating, setCreating] = useState(false)
+  const [deletingClient, setDeletingClient] = useState<Client | null>(null)
 
   const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
 
@@ -70,10 +72,12 @@ export function ClientsPage() {
           clients={filtered}
           ownersByClientId={ownersByClientId}
           onRowClick={(c) => navigate(`/clientes/${c.id}`)}
+          onDelete={(c) => setDeletingClient(c)}
         />
       )}
 
       <ClientFormModal open={creating} onClose={() => setCreating(false)} />
+      <DeleteClientModal client={deletingClient} onClose={() => setDeletingClient(null)} />
     </div>
   )
 }

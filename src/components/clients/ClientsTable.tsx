@@ -1,4 +1,5 @@
-import { Building2, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import { Building2, MapPin, MoreVertical, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Badge } from '../ui/Badge'
@@ -30,11 +31,15 @@ export function ClientsTable({
   clients,
   ownersByClientId,
   onRowClick,
+  onDelete,
 }: {
   clients: Client[]
   ownersByClientId: Record<string, AppUser[]>
   onRowClick: (client: Client) => void
+  onDelete: (client: Client) => void
 }) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white shadow-sm">
       <table className="w-full min-w-[820px] text-left text-sm">
@@ -47,7 +52,8 @@ export function ClientsTable({
             <th className="py-3 pr-3 font-semibold">Status</th>
             <th className="py-3 pr-3 font-semibold">Responsável</th>
             <th className="py-3 pr-3 font-semibold">Cidade</th>
-            <th className="py-3 pr-4 font-semibold">Início</th>
+            <th className="py-3 pr-3 font-semibold">Início</th>
+            <th className="w-10 py-3 pr-4"></th>
           </tr>
         </thead>
         <tbody>
@@ -101,8 +107,34 @@ export function ClientsTable({
                     '—'
                   )}
                 </td>
-                <td className="py-2.5 pr-4 text-slate-500">
+                <td className="py-2.5 pr-3 text-slate-500">
                   {client.contractStartDate ? format(client.contractStartDate.toDate(), 'dd MMM yyyy', { locale: ptBR }) : '—'}
+                </td>
+                <td className="py-2.5 pr-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="relative flex justify-end">
+                    <button
+                      onClick={() => setOpenMenuId((v) => (v === client.id ? null : client.id))}
+                      className="rounded-lg p-1.5 text-slate-400 transition-colors duration-150 ease-in-out hover:bg-slate-100 hover:text-slate-600"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+                    {openMenuId === client.id && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                        <div className="absolute right-0 top-8 z-20 w-44 rounded-lg border border-slate-100 bg-white p-1 shadow-lg">
+                          <button
+                            onClick={() => {
+                              setOpenMenuId(null)
+                              onDelete(client)
+                            }}
+                            className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={14} /> Excluir cliente
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             )

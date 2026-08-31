@@ -1,4 +1,4 @@
-import { orderBy, where, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
+import { orderBy, where, getDocs, query, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
 import type { Content, ContentStatus } from '../types'
 import { collectionService } from './firestore'
 import { logActivity } from './activityService'
@@ -101,4 +101,11 @@ export function subscribeContents(
 // view (Social Media board, Dashboard, Calendar) until someone set a date.
 export function subscribeAllContents(onData: (items: Content[]) => void, onError?: (err: FirestoreError) => void) {
   return base.subscribe([orderBy('createdAt', 'asc')], onData, onError)
+}
+
+/** One-shot fetch (not a live listener) — used by side-effects like the
+ *  client-deletion cascade, which needs a snapshot to batch-delete. */
+export async function getClientContents(clientId: string): Promise<Content[]> {
+  const snap = await getDocs(query(base.colRef, where('clientId', '==', clientId)))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as Content)
 }

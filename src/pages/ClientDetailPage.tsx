@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowLeft, Pencil, Plus, Globe, Camera, ThumbsUp, Phone, Mail, MapPin, Sparkles, CheckSquare } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Globe, Camera, ThumbsUp, Phone, Mail, MapPin, Sparkles, CheckSquare, MoreVertical, Trash2 } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
 import { useTasks } from '../hooks/useTasks'
 import { useContents } from '../hooks/useContents'
@@ -12,6 +12,7 @@ import { ClientBriefingTab } from '../components/clients/ClientBriefingTab'
 import { ClientAccessPanel } from '../components/clients/ClientAccessPanel'
 import { ClientCampaignPlanningPanel } from '../components/clients/ClientCampaignPlanningPanel'
 import { ClientLogoUpload } from '../components/clients/ClientLogoUpload'
+import { DeleteClientModal } from '../components/clients/DeleteClientModal'
 import { Badge } from '../components/ui/Badge'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
@@ -42,6 +43,8 @@ export function ClientDetailPage() {
   const [openContentId, setOpenContentId] = useState<string | null>(null)
   const [creatingTask, setCreatingTask] = useState(false)
   const [creatingContent, setCreatingContent] = useState(false)
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   if (!client) {
     return <EmptyState title="Cliente não encontrado" action={<Button onClick={() => navigate('/clientes')}>Voltar</Button>} />
@@ -75,9 +78,35 @@ export function ClientDetailPage() {
               {client.contactName && <p className="text-sm text-slate-400">{client.contactName}</p>}
             </div>
           </div>
-          <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>
-            Editar
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>
+              Editar
+            </Button>
+            <div className="relative">
+              <button
+                onClick={() => setOptionsOpen((v) => !v)}
+                className="rounded-lg p-2 text-slate-400 transition-colors duration-150 ease-in-out hover:bg-slate-100 hover:text-slate-600"
+              >
+                <MoreVertical size={16} />
+              </button>
+              {optionsOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setOptionsOpen(false)} />
+                  <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-slate-100 bg-white p-1 shadow-lg">
+                    <button
+                      onClick={() => {
+                        setOptionsOpen(false)
+                        setDeleting(true)
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 size={14} /> Excluir cliente
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500">
@@ -179,6 +208,11 @@ export function ClientDetailPage() {
       </div>
 
       <ClientFormModal open={editing} onClose={() => setEditing(false)} client={client} />
+      <DeleteClientModal
+        client={deleting ? client : null}
+        onClose={() => setDeleting(false)}
+        onDeleted={() => navigate('/clientes')}
+      />
       <TaskFormModal open={creatingTask} onClose={() => setCreatingTask(false)} defaultClientId={client.id} />
       <ContentFormModal open={creatingContent} onClose={() => setCreatingContent(false)} defaultClientId={client.id} />
       <TaskDrawer key={`task-${openTaskId ?? 'none'}`} task={openTask} onClose={() => setOpenTaskId(null)} />
