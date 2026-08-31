@@ -17,7 +17,7 @@ import {
   type ClientBriefing,
 } from '../../types/client'
 
-const EMPTY: ClientBriefing = { preenchidoPor: 'Janilson' }
+const EMPTY: ClientBriefing = { preenchidoPor: 'Jamilson' }
 
 function toDateInputValue(ts?: Timestamp | null) {
   if (!ts) return ''
@@ -73,7 +73,7 @@ export function ClientBriefingPanel({ client }: { client: Client }) {
       </p>
 
       <Field label="Preenchido por">
-        <Input value={form.preenchidoPor ?? ''} onChange={(e) => set('preenchidoPor', e.target.value)} placeholder="Ex: Janilson" />
+        <Input value={form.preenchidoPor ?? ''} onChange={(e) => set('preenchidoPor', e.target.value)} placeholder="Ex: Jamilson" />
       </Field>
 
       <div>

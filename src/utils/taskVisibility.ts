@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext'
 
 /** The one person who sees every task regardless of who it's assigned to —
  *  matched by name, the same loose convention already used across the app
- *  to resolve "Bruno"/"Ciane"/"Janilson" without a dedicated role field. */
+ *  to resolve "Bruno"/"Ciane"/"Jamilson" without a dedicated role field. */
 const UNRESTRICTED_VIEWER_NAME = 'bruno'
 
 export function useTaskVisibility() {

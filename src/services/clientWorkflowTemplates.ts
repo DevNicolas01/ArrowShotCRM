@@ -8,7 +8,7 @@ import type { Client } from '../types/client'
 import type { AppUser } from '../types/user'
 import type { ChecklistItem, TaskPriority, TaskRecurrence, WorkflowStepKey } from '../types/task'
 
-/** Resolves "Responsável: Janilson/Ciane" from the templates below to a real
+/** Resolves "Responsável: Jamilson/Ciane" from the templates below to a real
  *  uid by matching against the team roster (case-insensitive, matches on
  *  first name). Returns undefined — task stays unassigned — if that person
  *  doesn't have a CRM account yet (see README: accounts are created manually
@@ -36,7 +36,7 @@ function onboardingBrunoItems(companyName: string): string[] {
   ]
 }
 
-/** Boas-vindas e agendamento do briefing — responsabilidade de Janilson (CS). */
+/** Boas-vindas e agendamento do briefing — responsabilidade de Jamilson (CS). */
 const ONBOARDING_JANILSON_ITEMS = ['Enviar mensagem de boas-vindas no grupo', 'Agendar reunião de briefing e acessos']
 
 const BRIEFING_ACESSOS_ITEMS = [
@@ -145,12 +145,12 @@ interface StepDef {
   priority: TaskPriority
   /** 'creator' assigns to whoever triggered the step; a name assigns via
    *  findUserIdByName (falls back to unassigned if nobody matches yet). */
-  assignee: 'creator' | 'Bruno' | 'Janilson' | 'Ciane'
+  assignee: 'creator' | 'Bruno' | 'Jamilson' | 'Ciane'
   recurrence?: TaskRecurrence
   /** This step's completion only advances the workflow once every one of
    *  these sibling steps (same client) is also done — used to split one
    *  logical step into parallel sub-tasks for different people (e.g.
-   *  Onboarding: Bruno's part + Janilson's part) without either one alone
+   *  Onboarding: Bruno's part + Jamilson's part) without either one alone
    *  triggering the next step prematurely. */
   waitForSiblings?: WorkflowStepKey[]
 }
@@ -169,7 +169,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Checklist padrão de onboarding de cliente novo — boas-vindas e agendamento do briefing.',
     checklist: ONBOARDING_JANILSON_ITEMS,
     priority: 'high',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
     waitForSiblings: ['pt_onboarding_bruno'],
   },
   pt_briefing: {
@@ -177,7 +177,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Checklist padrão de briefing e coleta de acessos de Tráfego Pago.',
     checklist: BRIEFING_ACESSOS_ITEMS,
     priority: 'high',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
   },
   pt_planning: {
     title: (name) => `Planejamento de Campanhas — ${name}`,
@@ -207,7 +207,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Tarefa recorrente. Ao concluir, use "Duplicar próxima ocorrência" no card para recriá-la.',
     checklist: CS_SEMANAL_ITEMS,
     priority: 'normal',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
     recurrence: { frequency: 'weekly', weekday: 5 },
   },
   pt_cs_mensal: {
@@ -215,7 +215,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Tarefa recorrente. Ao concluir, use "Duplicar próxima ocorrência" no card para recriá-la.',
     checklist: CS_MENSAL_ITEMS,
     priority: 'normal',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
     recurrence: { frequency: 'monthly', dayOfMonth: 1 },
   },
   sm_ativacao: {
@@ -246,7 +246,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Tarefa recorrente. Ao concluir, use "Duplicar próxima ocorrência" no card para recriá-la.',
     checklist: CS_SEMANAL_ITEMS,
     priority: 'normal',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
     recurrence: { frequency: 'weekly', weekday: 5 },
   },
   sm_cs_mensal: {
@@ -254,7 +254,7 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     description: 'Tarefa recorrente. Ao concluir, use "Duplicar próxima ocorrência" no card para recriá-la.',
     checklist: CS_MENSAL_ITEMS,
     priority: 'normal',
-    assignee: 'Janilson',
+    assignee: 'Jamilson',
     recurrence: { frequency: 'monthly', dayOfMonth: 1 },
   },
 }
@@ -357,7 +357,7 @@ export async function advanceClientWorkflow(
   }
 }
 
-/** Called when the CS (Janilson) fills in and saves the briefing meeting
+/** Called when the CS (Jamilson) fills in and saves the briefing meeting
  *  date on the 'pt_onboarding_janilson' step: creates the Calendário event
  *  and notifies the whole team, per the platform's onboarding workflow. */
 export async function scheduleBriefingMeeting(
@@ -382,7 +382,7 @@ export async function scheduleBriefingMeeting(
   const dateLabel = format(meetingDate, "dd/MM/yyyy", { locale: ptBR })
   const message = `📅 Reunião de Briefing agendada — ${client.companyName}\nData: ${dateLabel} às ${meetingTime || '—'}\nAgendado por: ${userName}`
 
-  const recipientNames = ['Bruno', 'Ciane', 'Nicolas', 'Janilson']
+  const recipientNames = ['Bruno', 'Ciane', 'Nicolas', 'Jamilson']
   const recipientIds = new Set(recipientNames.map((name) => findUserIdByName(users, name)).filter((id): id is string => !!id))
 
   await Promise.all(

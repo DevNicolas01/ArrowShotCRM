@@ -27,7 +27,7 @@ export interface TeamMember extends BaseDoc {
   status: TeamMemberStatus
   photoURL?: string
   /** Links to the real login account in `users`, when this person has one —
-   *  Bruno and Janilson don't yet (see README: accounts are created
+   *  Bruno and Jamilson don't yet (see README: accounts are created
    *  manually in the Firebase Console). */
   userId?: string
   routineKey?: RoutineKey
