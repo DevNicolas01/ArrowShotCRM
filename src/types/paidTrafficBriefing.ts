@@ -49,6 +49,9 @@ export interface PaidTrafficBriefing {
   tempoDeMercado?: string
   percepcaoMercado?: string
   desafiosAtuais?: string
+  /** Puxado automaticamente pelo Planejamento de Campanha (Seção 4 —
+   *  Público-alvo). */
+  objecaoComum?: string
 
   // Seção 3 — Marketing
   resultadoEsperado?: string

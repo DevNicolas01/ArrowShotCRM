@@ -1,63 +1,22 @@
 import type { Timestamp } from 'firebase/firestore'
 
-export type MarketingObjective = 'vendas' | 'leads' | 'trafego' | 'seguidores'
-
-export const MARKETING_OBJECTIVE_LABEL: Record<MarketingObjective, string> = {
-  vendas: 'Vendas',
-  leads: 'Leads',
-  trafego: 'Tráfego',
-  seguidores: 'Seguidores',
-}
-
-export type AdPlatform = 'meta_ads' | 'google_ads'
-
-export const AD_PLATFORM_LABEL: Record<AdPlatform, string> = {
-  meta_ads: 'Meta Ads',
-  google_ads: 'Google Ads',
-}
-
-export type PriceComparison = 'mais_caro' | 'na_media' | 'mais_barato'
-
-export const PRICE_COMPARISON_LABEL: Record<PriceComparison, string> = {
-  mais_caro: 'Mais caro',
-  na_media: 'Na média',
-  mais_barato: 'Mais barato',
-}
-
-/** Seção 1 — Acessos das contas. Por segurança, nunca guarda login/senha —
- *  só status de acesso (confirmado ou não) e links. Antes vivia numa aba
- *  "Acessos" separada; agora é a primeira seção do Planejamento de Campanha. */
+/** Seção 1 — Acessos das contas. Só o essencial: links, IDs e checklists de
+ *  configuração — nunca login/senha, e sem status "confirmado?" avulsos. */
 export interface CampaignPlanningAccess {
   siteUrl?: string
-  siteAcessoConfirmado?: boolean
-
-  facebookLink?: string
-  facebookGerenciadorConfirmado?: boolean
-  facebookContaPrincipalId?: string
-  facebookContaReservaId?: string
 
   instagramLink?: string
-  instagramEditorConfirmado?: boolean
 
   googleAdsId?: string
-  googleAdsAcessoConfirmado?: boolean
-  googleAdsPagamentoConfigurado?: boolean
 
-  gtmContainerId?: string
-  gtmAcessoConfirmado?: boolean
-  gtmCodigoInstalado?: boolean
-  gtmTagRemarketingInstalada?: boolean
-  gtmTagsConversaoInstaladas?: boolean
+  gtmContainerCriado?: boolean
+  gtmInstaladoNoSite?: boolean
+  gtmRastreamentoCompleto?: boolean
 
-  gmbLink?: string
-  gmbAcessoConfirmado?: boolean
-
-  analyticsPropertyId?: string
-  analyticsAcessoConfirmado?: boolean
+  gmbConfigurado?: boolean
 
   /** Máscara (00) 00000-0000, ver utils/masks.ts. */
   whatsappNumero?: string
-  whatsappLink?: string
 
   linkDrive?: string
 }
@@ -72,14 +31,7 @@ export const META_FUNNEL_STAGE_LABEL: Record<MetaFunnelStage, string> = {
   fundo: 'Fundo (Quente)',
 }
 
-export type MetaObjective =
-  | 'alcance'
-  | 'video_view'
-  | 'envolvimento'
-  | 'trafego'
-  | 'mensagens'
-  | 'conversao'
-  | 'geracao_cadastro'
+export type MetaObjective = 'alcance' | 'video_view' | 'envolvimento' | 'trafego' | 'mensagens' | 'vendas' | 'geracao_cadastro'
 
 export const META_OBJECTIVE_LABEL: Record<MetaObjective, string> = {
   alcance: 'Alcance',
@@ -87,14 +39,14 @@ export const META_OBJECTIVE_LABEL: Record<MetaObjective, string> = {
   envolvimento: 'Envolvimento',
   trafego: 'Tráfego',
   mensagens: 'Mensagens',
-  conversao: 'Conversão',
+  vendas: 'Vendas',
   geracao_cadastro: 'Geração de Cadastro',
 }
 
 export interface MetaCampaignItem {
   id: string
   etapaFunil?: MetaFunnelStage
-  ideia?: string
+  descricao?: string
   objetivo?: MetaObjective
   publicos?: string
   verbaDiaria?: number
@@ -155,13 +107,14 @@ export interface GoogleAdsPlanning {
   /** Uma palavra-chave por linha. */
   palavrasChavePositivas?: string
   palavrasChaveNegativas?: string
-  localizacaoSegmentacao?: string
 }
 
 export const EMPTY_GOOGLE_ADS_PLANNING: GoogleAdsPlanning = { diasDoMes: 30, campanhas: [] }
 
 /** Aba "Planejamento de Campanha" — preenchida pelos gestores (Ciane e
- *  Nicolas), separada do Briefing de Tráfego Pago (preenchido pelo CS). */
+ *  Nicolas), separada do Briefing de Tráfego Pago (preenchido pelo CS). A
+ *  Seção 4 (Público-alvo) não é preenchida aqui — é só leitura, puxada do
+ *  Briefing de Tráfego Pago já salvo (ver ClientCampaignPlanningPanel). */
 export interface CampaignPlanning {
   /** Who last saved it — set automatically from the logged-in user. */
   preenchidoPor?: string
@@ -176,35 +129,7 @@ export interface CampaignPlanning {
   // Seção 3 — Planejamento Google Ads
   googleAds: GoogleAdsPlanning
 
-  // Seção 4 — Estratégia geral
-  objetivoPrincipal?: MarketingObjective
-  plataformas: AdPlatform[]
-  regioesSegmentacao?: string
-  produtosServicos?: string
-  orcamentoMensalAnuncios?: number
-  posicionamentoPreco?: PriceComparison
-
-  descricaoPublico?: string
-  faixaEtaria?: string
-  genero?: string
-  interesses?: string
-  publicoB2B?: boolean
-  b2bSetor?: string
-  b2bCargoDecisor?: string
-  b2bFaturamentoMinimo?: string
-
-  concorrente1?: string
-  concorrente2?: string
-  concorrente3?: string
-  diferencialVsConcorrentes?: string
-  diferenciaisParaAnuncios?: string
-
-  linkPesquisaDrive?: string
-  observacoesBenchmarking?: string
-
-  enderecoDestino?: string
-  observacoesCriativos?: string
-
+  // Seção 5 — Observações gerais
   observacoesGerais?: string
 }
 
@@ -212,5 +137,4 @@ export const EMPTY_CAMPAIGN_PLANNING: CampaignPlanning = {
   acessos: EMPTY_CAMPAIGN_PLANNING_ACCESS,
   metaAds: EMPTY_META_ADS_PLANNING,
   googleAds: EMPTY_GOOGLE_ADS_PLANNING,
-  plataformas: [],
 }

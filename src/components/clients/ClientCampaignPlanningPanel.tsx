@@ -14,9 +14,6 @@ import {
   EMPTY_CAMPAIGN_PLANNING_ACCESS,
   EMPTY_META_ADS_PLANNING,
   EMPTY_GOOGLE_ADS_PLANNING,
-  MARKETING_OBJECTIVE_LABEL,
-  AD_PLATFORM_LABEL,
-  PRICE_COMPARISON_LABEL,
   META_FUNNEL_STAGE_LABEL,
   META_OBJECTIVE_LABEL,
   GOOGLE_ADS_NETWORK_LABEL,
@@ -28,13 +25,11 @@ import {
   type MetaCampaignItem,
   type GoogleAdsPlanning,
   type GoogleCampaignItem,
-  type AdPlatform,
-  type MarketingObjective,
-  type PriceComparison,
   type MetaFunnelStage,
   type MetaObjective,
   type GoogleAdsNetwork,
   type GoogleBidType,
+  type PaidTrafficBriefing,
 } from '../../types'
 
 function toNumberOrUndefined(v: string) {
@@ -58,21 +53,6 @@ function SubTitle({ children }: { children: string }) {
   return <p className="mb-1.5 text-sm font-semibold text-slate-700">{children}</p>
 }
 
-function YesNoField({ label, value, onChange }: { label: string; value?: boolean; onChange: (v?: boolean) => void }) {
-  return (
-    <Field label={label}>
-      <Select
-        value={value === undefined ? '' : value ? 'sim' : 'nao'}
-        onChange={(e) => onChange(e.target.value === '' ? undefined : e.target.value === 'sim')}
-      >
-        <option value="">Selecione...</option>
-        <option value="sim">Sim</option>
-        <option value="nao">Não</option>
-      </Select>
-    </Field>
-  )
-}
-
 function CalculatedField({ label, value }: { label: string; value?: number }) {
   return (
     <div>
@@ -84,6 +64,45 @@ function CalculatedField({ label, value }: { label: string; value?: number }) {
   )
 }
 
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="mb-1 block text-xs font-medium text-slate-500">{label}</span>
+      <div className="min-h-[38px] rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+        {value || '—'}
+      </div>
+    </div>
+  )
+}
+
+function composeIcpB2C(b: PaidTrafficBriefing): string {
+  return (
+    [
+      b.b2cGenero && `Gênero: ${b.b2cGenero}`,
+      b.b2cEstadoCivilFilhos && `Estado civil/filhos: ${b.b2cEstadoCivilFilhos}`,
+      b.b2cFaixaEtaria && `Faixa etária: ${b.b2cFaixaEtaria}`,
+      b.b2cEscolaridadeProfissao && `Escolaridade/profissão: ${b.b2cEscolaridadeProfissao}`,
+      b.b2cRegiao && `Região: ${b.b2cRegiao}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+  )
+}
+
+function composeIcpB2B(b: PaidTrafficBriefing): string {
+  return (
+    [
+      b.b2bSetor && `Setor: ${b.b2bSetor}`,
+      b.b2bFaturamentoMinimo != null && `Faturamento mínimo: ${b.b2bFaturamentoMinimo}`,
+      b.b2bQuantidadeFuncionarios && `Nº de funcionários: ${b.b2bQuantidadeFuncionarios}`,
+      b.b2bCargoDecisor && `Cargo do decisor: ${b.b2bCargoDecisor}`,
+      b.b2bLocalizacao && `Localização: ${b.b2bLocalizacao}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+  )
+}
+
 function mergeCampaignPlanning(saved?: CampaignPlanning): CampaignPlanning {
   return {
     ...EMPTY_CAMPAIGN_PLANNING,
@@ -91,7 +110,6 @@ function mergeCampaignPlanning(saved?: CampaignPlanning): CampaignPlanning {
     acessos: { ...EMPTY_CAMPAIGN_PLANNING_ACCESS, ...saved?.acessos },
     metaAds: { ...EMPTY_META_ADS_PLANNING, ...saved?.metaAds, campanhas: saved?.metaAds?.campanhas ?? [] },
     googleAds: { ...EMPTY_GOOGLE_ADS_PLANNING, ...saved?.googleAds, campanhas: saved?.googleAds?.campanhas ?? [] },
-    plataformas: saved?.plataformas ?? [],
   }
 }
 
@@ -130,14 +148,6 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
   const removeGoogleCampaign = (id: string) =>
     setGoogle('campanhas', form.googleAds.campanhas.filter((c) => c.id !== id))
 
-  const togglePlatform = (platform: AdPlatform) =>
-    setForm((f) => ({
-      ...f,
-      plataformas: f.plataformas.includes(platform)
-        ? f.plataformas.filter((p) => p !== platform)
-        : [...f.plataformas, platform],
-    }))
-
   const metaVerbaDiaria =
     form.metaAds.verbaMensal && form.metaAds.diasDoMes ? form.metaAds.verbaMensal / form.metaAds.diasDoMes : undefined
   const googleVerbaDiaria =
@@ -174,6 +184,8 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
   }
 
   const lastFilled = client.campaignPlanning?.filledAt
+  const briefing = client.paidTrafficBriefing
+  const briefingFilled = !!briefing?.filledAt
 
   return (
     <div className="flex flex-col gap-6">
@@ -191,159 +203,70 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
       {/* SEÇÃO 1 — ACESSOS DAS CONTAS */}
       <div>
         <SectionTitle>1. Acessos das contas</SectionTitle>
-        <p className="mb-3 text-xs text-slate-400">
-          Por segurança, login e senha não ficam registrados aqui — apenas o status do acesso e links.
-        </p>
 
         <div className="flex flex-col gap-4">
-          <div>
-            <SubTitle>Site</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="URL do site">
-                <Input value={form.acessos.siteUrl ?? ''} onChange={(e) => setAccess('siteUrl', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso confirmado?"
-                value={form.acessos.siteAcessoConfirmado}
-                onChange={(v) => setAccess('siteAcessoConfirmado', v)}
-              />
-            </div>
-          </div>
+          <Field label="URL do site">
+            <Input value={form.acessos.siteUrl ?? ''} onChange={(e) => setAccess('siteUrl', e.target.value)} />
+          </Field>
 
-          <div>
-            <SubTitle>Facebook / Meta Business</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Link da página do Facebook">
-                <Input value={form.acessos.facebookLink ?? ''} onChange={(e) => setAccess('facebookLink', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso ao Gerenciador de Anúncios confirmado?"
-                value={form.acessos.facebookGerenciadorConfirmado}
-                onChange={(v) => setAccess('facebookGerenciadorConfirmado', v)}
-              />
-              <Field label="ID da conta de anúncios principal">
-                <Input
-                  value={form.acessos.facebookContaPrincipalId ?? ''}
-                  onChange={(e) => setAccess('facebookContaPrincipalId', e.target.value)}
-                />
-              </Field>
-              <Field label="ID da conta de anúncios reserva">
-                <Input
-                  value={form.acessos.facebookContaReservaId ?? ''}
-                  onChange={(e) => setAccess('facebookContaReservaId', e.target.value)}
-                />
-              </Field>
-            </div>
-          </div>
+          <Field label="Link do perfil do Instagram">
+            <Input value={form.acessos.instagramLink ?? ''} onChange={(e) => setAccess('instagramLink', e.target.value)} />
+          </Field>
 
-          <div>
-            <SubTitle>Instagram</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Link do perfil do Instagram">
-                <Input value={form.acessos.instagramLink ?? ''} onChange={(e) => setAccess('instagramLink', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso como Editor confirmado?"
-                value={form.acessos.instagramEditorConfirmado}
-                onChange={(v) => setAccess('instagramEditorConfirmado', v)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Google Ads</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="ID da conta Google Ads">
-                <Input value={form.acessos.googleAdsId ?? ''} onChange={(e) => setAccess('googleAdsId', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso confirmado?"
-                value={form.acessos.googleAdsAcessoConfirmado}
-                onChange={(v) => setAccess('googleAdsAcessoConfirmado', v)}
-              />
-              <YesNoField
-                label="Forma de pagamento configurada?"
-                value={form.acessos.googleAdsPagamentoConfigurado}
-                onChange={(v) => setAccess('googleAdsPagamentoConfigurado', v)}
-              />
-            </div>
-          </div>
+          <Field label="ID da conta Google Ads">
+            <Input value={form.acessos.googleAdsId ?? ''} onChange={(e) => setAccess('googleAdsId', e.target.value)} />
+          </Field>
 
           <div>
             <SubTitle>Google Tag Manager</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="ID do container GTM">
-                <Input value={form.acessos.gtmContainerId ?? ''} onChange={(e) => setAccess('gtmContainerId', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso confirmado?"
-                value={form.acessos.gtmAcessoConfirmado}
-                onChange={(v) => setAccess('gtmAcessoConfirmado', v)}
-              />
-              <YesNoField
-                label="Código GTM instalado no site?"
-                value={form.acessos.gtmCodigoInstalado}
-                onChange={(v) => setAccess('gtmCodigoInstalado', v)}
-              />
-              <YesNoField
-                label="Tag de remarketing instalada?"
-                value={form.acessos.gtmTagRemarketingInstalada}
-                onChange={(v) => setAccess('gtmTagRemarketingInstalada', v)}
-              />
-              <YesNoField
-                label="Tags de conversão instaladas?"
-                value={form.acessos.gtmTagsConversaoInstaladas}
-                onChange={(v) => setAccess('gtmTagsConversaoInstaladas', v)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Google Meu Negócio</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Link do perfil GMB">
-                <Input value={form.acessos.gmbLink ?? ''} onChange={(e) => setAccess('gmbLink', e.target.value)} />
-              </Field>
-              <YesNoField
-                label="Acesso confirmado?"
-                value={form.acessos.gmbAcessoConfirmado}
-                onChange={(v) => setAccess('gmbAcessoConfirmado', v)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Google Analytics</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="ID da propriedade">
-                <Input
-                  value={form.acessos.analyticsPropertyId ?? ''}
-                  onChange={(e) => setAccess('analyticsPropertyId', e.target.value)}
+            <div className="flex flex-col gap-1.5">
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={!!form.acessos.gtmContainerCriado}
+                  onChange={(e) => setAccess('gtmContainerCriado', e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
                 />
-              </Field>
-              <YesNoField
-                label="Acesso confirmado?"
-                value={form.acessos.analyticsAcessoConfirmado}
-                onChange={(v) => setAccess('analyticsAcessoConfirmado', v)}
-              />
+                Container GTM criado
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={!!form.acessos.gtmInstaladoNoSite}
+                  onChange={(e) => setAccess('gtmInstaladoNoSite', e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                />
+                GTM instalado no site
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={!!form.acessos.gtmRastreamentoCompleto}
+                  onChange={(e) => setAccess('gtmRastreamentoCompleto', e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+                />
+                Rastreamento completo configurado
+              </label>
             </div>
           </div>
 
-          <div>
-            <SubTitle>WhatsApp para campanhas</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Número com DDD">
-                <Input
-                  value={form.acessos.whatsappNumero ?? ''}
-                  onChange={(e) => setAccess('whatsappNumero', maskPhone(e.target.value))}
-                  placeholder="(00) 00000-0000"
-                />
-              </Field>
-              <Field label="Link clicável do WhatsApp">
-                <Input value={form.acessos.whatsappLink ?? ''} onChange={(e) => setAccess('whatsappLink', e.target.value)} />
-              </Field>
-            </div>
-          </div>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={!!form.acessos.gmbConfigurado}
+              onChange={(e) => setAccess('gmbConfigurado', e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
+            />
+            Google Meu Negócio configurado
+          </label>
+
+          <Field label="WhatsApp para campanhas — número com DDD">
+            <Input
+              value={form.acessos.whatsappNumero ?? ''}
+              onChange={(e) => setAccess('whatsappNumero', maskPhone(e.target.value))}
+              placeholder="(00) 00000-0000"
+            />
+          </Field>
 
           <Field label="Link da pasta Drive do cliente">
             <Input value={form.acessos.linkDrive ?? ''} onChange={(e) => setAccess('linkDrive', e.target.value)} />
@@ -434,8 +357,8 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
                     </Select>
                   </Field>
                   <div className="sm:col-span-2">
-                    <Field label="Ideia/descrição da campanha">
-                      <Input value={c.ideia ?? ''} onChange={(e) => updateMetaCampaign(c.id, { ideia: e.target.value })} />
+                    <Field label="Descrição da campanha">
+                      <Input value={c.descricao ?? ''} onChange={(e) => updateMetaCampaign(c.id, { descricao: e.target.value })} />
                     </Field>
                   </div>
                   <Field label="Públicos">
@@ -537,11 +460,7 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
                     </Select>
                   </Field>
                   <Field label="Nome da campanha">
-                    <Input
-                      value={c.nomeCampanha ?? ''}
-                      onChange={(e) => updateGoogleCampaign(c.id, { nomeCampanha: e.target.value })}
-                      placeholder="Seguir nomenclatura padrão"
-                    />
+                    <Input value={c.nomeCampanha ?? ''} onChange={(e) => updateGoogleCampaign(c.id, { nomeCampanha: e.target.value })} />
                   </Field>
                   <div className="sm:col-span-2">
                     <Field label="Grupos de anúncios">
@@ -614,198 +533,30 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
               placeholder="Uma por linha"
             />
           </Field>
-          <div className="sm:col-span-2">
-            <Field label="Localização de segmentação">
-              <Input
-                value={form.googleAds.localizacaoSegmentacao ?? ''}
-                onChange={(e) => setGoogle('localizacaoSegmentacao', e.target.value)}
-              />
-            </Field>
-          </div>
         </div>
       </div>
 
-      {/* SEÇÃO 4 — ESTRATÉGIA GERAL */}
+      {/* SEÇÃO 4 — PÚBLICO-ALVO (somente leitura, do Briefing de Tráfego Pago) */}
       <div>
-        <SectionTitle>4. Estratégia geral</SectionTitle>
-
-        <div className="flex flex-col gap-4">
-          <div>
-            <SubTitle>Objetivo</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Objetivo principal da campanha">
-                <Select
-                  value={form.objetivoPrincipal ?? ''}
-                  onChange={(e) => set('objetivoPrincipal', e.target.value as MarketingObjective)}
-                >
-                  <option value="">Selecione...</option>
-                  {(Object.entries(MARKETING_OBJECTIVE_LABEL) as [MarketingObjective, string][]).map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </Select>
-              </Field>
-              <div>
-                <span className="mb-1 block text-xs font-medium text-slate-500">Plataformas utilizadas</span>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  {(Object.entries(AD_PLATFORM_LABEL) as [AdPlatform, string][]).map(([value, label]) => (
-                    <label key={value} className="flex items-center gap-1.5 text-sm text-slate-600">
-                      <input
-                        type="checkbox"
-                        checked={form.plataformas.includes(value)}
-                        onChange={() => togglePlatform(value)}
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <Field label="Regiões de segmentação">
-                <Input value={form.regioesSegmentacao ?? ''} onChange={(e) => set('regioesSegmentacao', e.target.value)} />
-              </Field>
-              <Field label="Produtos/serviços a anunciar">
-                <Input value={form.produtosServicos ?? ''} onChange={(e) => set('produtosServicos', e.target.value)} />
-              </Field>
-              <Field label="Orçamento mensal de anúncios (R$)">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.orcamentoMensalAnuncios ?? ''}
-                  onChange={(e) => set('orcamentoMensalAnuncios', toNumberOrUndefined(e.target.value))}
-                />
-              </Field>
-              <Field label="Posicionamento de preço">
-                <Select
-                  value={form.posicionamentoPreco ?? ''}
-                  onChange={(e) => set('posicionamentoPreco', e.target.value as PriceComparison)}
-                >
-                  <option value="">Selecione...</option>
-                  {(Object.entries(PRICE_COMPARISON_LABEL) as [PriceComparison, string][]).map(([v, l]) => (
-                    <option key={v} value={v}>{l}</option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
+        <SectionTitle>4. Público-alvo</SectionTitle>
+        {!briefingFilled ? (
+          <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-sm text-slate-400">
+            Preencha o Briefing de Tráfego Pago para ver os dados de público-alvo aqui.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ReadOnlyField label="Perfil do cliente ideal (ICP B2C)" value={composeIcpB2C(briefing!)} />
+            <ReadOnlyField label="Perfil do cliente ideal (ICP B2B)" value={composeIcpB2B(briefing!)} />
+            <ReadOnlyField label="Principal dor do cliente" value={briefing!.b2cDorPrincipal ?? ''} />
+            <ReadOnlyField label="Objeção mais comum" value={briefing!.objecaoComum ?? ''} />
           </div>
+        )}
+      </div>
 
-          <div>
-            <SubTitle>Público-alvo</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Field label="Descrição do público principal">
-                  <Textarea rows={2} value={form.descricaoPublico ?? ''} onChange={(e) => set('descricaoPublico', e.target.value)} />
-                </Field>
-              </div>
-              <Field label="Faixa etária">
-                <Input value={form.faixaEtaria ?? ''} onChange={(e) => set('faixaEtaria', e.target.value)} />
-              </Field>
-              <Field label="Gênero">
-                <Input value={form.genero ?? ''} onChange={(e) => set('genero', e.target.value)} />
-              </Field>
-              <div className="sm:col-span-2">
-                <Field label="Interesses relevantes">
-                  <Textarea rows={2} value={form.interesses ?? ''} onChange={(e) => set('interesses', e.target.value)} />
-                </Field>
-              </div>
-              <Field label="Público B2B?">
-                <Select
-                  value={form.publicoB2B === undefined ? '' : form.publicoB2B ? 'sim' : 'nao'}
-                  onChange={(e) => set('publicoB2B', e.target.value === '' ? undefined : e.target.value === 'sim')}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="sim">Sim</option>
-                  <option value="nao">Não</option>
-                </Select>
-              </Field>
-              <div />
-              {form.publicoB2B && (
-                <>
-                  <Field label="Setor">
-                    <Input value={form.b2bSetor ?? ''} onChange={(e) => set('b2bSetor', e.target.value)} />
-                  </Field>
-                  <Field label="Cargo do decisor">
-                    <Input value={form.b2bCargoDecisor ?? ''} onChange={(e) => set('b2bCargoDecisor', e.target.value)} />
-                  </Field>
-                  <Field label="Faturamento mínimo">
-                    <Input value={form.b2bFaturamentoMinimo ?? ''} onChange={(e) => set('b2bFaturamentoMinimo', e.target.value)} />
-                  </Field>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Concorrentes</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Concorrente 1">
-                <Input value={form.concorrente1 ?? ''} onChange={(e) => set('concorrente1', e.target.value)} />
-              </Field>
-              <Field label="Concorrente 2">
-                <Input value={form.concorrente2 ?? ''} onChange={(e) => set('concorrente2', e.target.value)} />
-              </Field>
-              <Field label="Concorrente 3">
-                <Input value={form.concorrente3 ?? ''} onChange={(e) => set('concorrente3', e.target.value)} />
-              </Field>
-              <div />
-              <div className="sm:col-span-2">
-                <Field label="O que oferece que os concorrentes não oferecem">
-                  <Textarea
-                    rows={2}
-                    value={form.diferencialVsConcorrentes ?? ''}
-                    onChange={(e) => set('diferencialVsConcorrentes', e.target.value)}
-                  />
-                </Field>
-              </div>
-              <div className="sm:col-span-2">
-                <Field label="Diferenciais para usar nos anúncios">
-                  <Textarea
-                    rows={2}
-                    value={form.diferenciaisParaAnuncios ?? ''}
-                    onChange={(e) => set('diferenciaisParaAnuncios', e.target.value)}
-                  />
-                </Field>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Benchmarking</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Field label="Link da pesquisa salva no Drive">
-                  <Input value={form.linkPesquisaDrive ?? ''} onChange={(e) => set('linkPesquisaDrive', e.target.value)} />
-                </Field>
-              </div>
-              <div className="sm:col-span-2">
-                <Field label="Observações do benchmarking">
-                  <Textarea rows={2} value={form.observacoesBenchmarking ?? ''} onChange={(e) => set('observacoesBenchmarking', e.target.value)} />
-                </Field>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Criativos e direcionamento</SubTitle>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Field label="Endereço de destino dos anúncios (URL da LP ou WhatsApp)">
-                  <Input value={form.enderecoDestino ?? ''} onChange={(e) => set('enderecoDestino', e.target.value)} />
-                </Field>
-              </div>
-              <div className="sm:col-span-2">
-                <Field label="Observações sobre criativos">
-                  <Textarea rows={2} value={form.observacoesCriativos ?? ''} onChange={(e) => set('observacoesCriativos', e.target.value)} />
-                </Field>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <SubTitle>Observações gerais</SubTitle>
-            <Textarea rows={3} value={form.observacoesGerais ?? ''} onChange={(e) => set('observacoesGerais', e.target.value)} />
-          </div>
-        </div>
+      {/* SEÇÃO 5 — OBSERVAÇÕES GERAIS */}
+      <div>
+        <SectionTitle>5. Observações gerais</SectionTitle>
+        <Textarea rows={3} value={form.observacoesGerais ?? ''} onChange={(e) => set('observacoesGerais', e.target.value)} />
       </div>
 
       <Button icon={<Save size={14} />} onClick={handleSave} loading={saving} className="self-start">

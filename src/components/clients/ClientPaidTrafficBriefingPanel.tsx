@@ -173,6 +173,11 @@ export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
               <Textarea rows={2} value={form.desafiosAtuais ?? ''} onChange={(e) => set('desafiosAtuais', e.target.value)} />
             </Field>
           </div>
+          <div className="sm:col-span-2">
+            <Field label="Objeção mais comum">
+              <Textarea rows={2} value={form.objecaoComum ?? ''} onChange={(e) => set('objecaoComum', e.target.value)} />
+            </Field>
+          </div>
         </div>
       </div>
 
