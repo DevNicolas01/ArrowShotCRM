@@ -11,7 +11,7 @@ export function AppLayout() {
       <Sidebar mobileOpen={mobileNavOpen} onCloseMobile={() => setMobileNavOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onOpenMobileNav={() => setMobileNavOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-5">
+        <main className="flex-1 overflow-y-auto p-8">
           <Outlet />
         </main>
       </div>
