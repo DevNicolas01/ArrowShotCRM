@@ -84,7 +84,7 @@ export interface Client extends BaseDoc {
    *  após "Acessos" (ver campaignPlanning.ts). */
   campaignPlanning?: CampaignPlanning
   /** Which services this client has contracted — also drives which onboarding
-   *  task templates get created (see onboardingTemplates.ts / paidTrafficTemplates.ts). */
+   *  task templates get created (see clientWorkflowTemplates.ts). */
   modules?: {
     socialMedia?: boolean
     paidTraffic?: boolean

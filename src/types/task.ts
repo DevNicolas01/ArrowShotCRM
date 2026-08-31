@@ -68,6 +68,25 @@ export interface TaskRecurrence {
   dayOfMonth?: number
 }
 
+/** Identifies a task's position in the automatic client-onboarding workflow
+ *  (see clientWorkflowTemplates.ts) — set only on auto-generated tasks.
+ *  When a task carrying one of these is marked "done", the next step(s) of
+ *  its sequence are created automatically; terminal/recurring steps (the
+ *  weekly/monthly ones) don't chain any further. */
+export type WorkflowStepKey =
+  | 'pt_onboarding'
+  | 'pt_briefing'
+  | 'pt_planning'
+  | 'pt_trafego_semanal'
+  | 'pt_trafego_mensal'
+  | 'pt_cs_semanal'
+  | 'pt_cs_mensal'
+  | 'sm_ativacao'
+  | 'sm_producao'
+  | 'sm_aprovacao'
+  | 'sm_cs_semanal'
+  | 'sm_cs_mensal'
+
 export interface Task extends BaseDoc {
   title: string
   description?: string
@@ -77,7 +96,7 @@ export interface Task extends BaseDoc {
   priority: TaskPriority
   status: TaskStatus
   checklist: ChecklistItem[]
-  /** manual sort order within a kanban column */
+  /** manual sort order within a list/board */
   order: number
   /** links a task to a content piece when it belongs to a social media production flow */
   contentId?: string
@@ -86,8 +105,11 @@ export interface Task extends BaseDoc {
    *  the drawer offers a "duplicate next occurrence" action instead of an
    *  automatic job. */
   recurrence?: TaskRecurrence | null
-  /** Which Kanban board this task belongs to, if any (see TaskBoard). */
+  /** Which workflow this task belongs to, if any (see TaskBoard) — drives the
+   *  status vocabulary shown in TaskDrawer/TaskFormModal. */
   board?: TaskBoard
+  /** See WorkflowStepKey. */
+  workflowStep?: WorkflowStepKey | null
 }
 
 export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {

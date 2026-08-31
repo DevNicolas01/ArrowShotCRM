@@ -14,6 +14,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { updateTask, deleteTask, duplicateRecurringTask } from '../../services/taskService'
+import { advanceClientWorkflow } from '../../services/clientWorkflowTemplates'
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -37,7 +38,13 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
 
   if (!task || !profile) return null
 
-  const save = (data: Partial<Task>) => updateTask(task.id, data, profile.id, profile.name)
+  const save = async (data: Partial<Task>) => {
+    await updateTask(task.id, data, profile.id, profile.name)
+    if (data.status === 'done' && task.status !== 'done' && task.workflowStep) {
+      const client = clients.find((c) => c.id === task.clientId)
+      if (client) await advanceClientWorkflow(task, client, profile.id, profile.name, users)
+    }
+  }
 
   const handleDelete = async () => {
     if (!confirm(`Excluir a tarefa "${task.title}"?`)) return

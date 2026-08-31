@@ -7,8 +7,7 @@ import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 import { useUsers } from '../../hooks/useUsers'
 import { createClient, updateClient } from '../../services/clientService'
-import { createOnboardingTasks } from '../../services/onboardingTemplates'
-import { createPaidTrafficTasks, createSharedOnboardingTasks } from '../../services/paidTrafficTemplates'
+import { createInitialWorkflowTasks } from '../../services/clientWorkflowTemplates'
 import { maskPhone, isPhoneComplete, maskDocument, maskCurrencyInput, parseCurrencyToNumber } from '../../utils/masks'
 import {
   CLIENT_PACKAGE_LABEL,
@@ -95,10 +94,8 @@ export function ClientFormModal({
   const whatsappIncomplete = form.whatsapp.trim() !== '' && !isPhoneComplete(form.whatsapp)
 
   const autoTaskSummary = [
-    form.socialMedia && 'Social Media: Ativação + Materiais',
-    form.paidTraffic
-      ? 'Onboarding, Briefing e Acessos, Planejamento de Campanhas + recorrentes (Gestor de Tráfego e CS)'
-      : form.socialMedia && 'Onboarding + CS Semanal + CS Mensal',
+    form.paidTraffic && 'Tráfego Pago: cria "Onboarding" — as próximas etapas aparecem sozinhas conforme cada uma for concluída',
+    form.socialMedia && 'Social Media: cria "Ativação de Social Media" — as próximas etapas aparecem sozinhas conforme cada uma for concluída',
   ]
     .filter(Boolean)
     .join('; ')
@@ -135,15 +132,8 @@ export function ClientFormModal({
       } else {
         const newClientId = await createClient({ ...basePayload, status: 'prospect' }, profile.id, profile.name)
         if (createTasks) {
-          const newClient = { id: newClientId, companyName: basePayload.companyName }
-          if (form.socialMedia) {
-            await createOnboardingTasks(newClient, profile.id, profile.name)
-          }
-          if (form.paidTraffic) {
-            await createPaidTrafficTasks(newClient, profile.id, profile.name, users)
-          } else if (form.socialMedia) {
-            await createSharedOnboardingTasks(newClient, profile.id, profile.name, users)
-          }
+          const newClient = { id: newClientId, companyName: basePayload.companyName, modules: basePayload.modules }
+          await createInitialWorkflowTasks(newClient, profile.id, profile.name, users)
         }
         toast.success('Cliente cadastrado com sucesso')
       }
