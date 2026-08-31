@@ -24,8 +24,8 @@ export const CREDIT_CARD_FOR_ADS_LABEL: Record<CreditCardForAds, string> = {
 
 /** Briefing de Tráfego Pago — filled by CS during or right after the kickoff
  *  call. Empresa/CNPJ/site/redes já ficam no cadastro do cliente (Client) e
- *  Acessos vive na própria aba "Acessos" (preenchida pelos gestores), então
- *  nenhum dos dois se repete aqui. */
+ *  Acessos vive dentro do Planejamento de Campanha (preenchido pelos
+ *  gestores), então nenhum dos dois se repete aqui. */
 export interface PaidTrafficBriefing {
   /** Who last saved it — set automatically from the logged-in user, not a
    *  field the person filling it out picks. */
@@ -75,10 +75,7 @@ export interface PaidTrafficBriefing {
   b2bCargoDecisor?: string
   b2bLocalizacao?: string
 
-  // Seção 6 — Palavras-chave
-  palavrasChave?: string
-
-  // Seção 7 — Observações gerais
+  // Seção 6 — Observações gerais
   observacoes?: string
 }
 

@@ -9,7 +9,6 @@ import { useContents } from '../hooks/useContents'
 import { useUsers } from '../hooks/useUsers'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 import { ClientBriefingTab } from '../components/clients/ClientBriefingTab'
-import { ClientAccessPanel } from '../components/clients/ClientAccessPanel'
 import { ClientCampaignPlanningPanel } from '../components/clients/ClientCampaignPlanningPanel'
 import { ClientLogoUpload } from '../components/clients/ClientLogoUpload'
 import { DeleteClientModal } from '../components/clients/DeleteClientModal'
@@ -138,7 +137,6 @@ export function ClientDetailPage() {
         <Tabs
           tabs={[
             { label: 'Briefing', content: <ClientBriefingTab client={client} /> },
-            { label: 'Acessos', content: <ClientAccessPanel client={client} /> },
             { label: 'Planejamento de Campanha', content: <ClientCampaignPlanningPanel client={client} /> },
             {
               label: 'Tarefas',

@@ -288,17 +288,7 @@ export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
       </div>
 
       <div>
-        <SectionTitle>6. Palavras-chave</SectionTitle>
-        <Textarea
-          rows={3}
-          value={form.palavrasChave ?? ''}
-          onChange={(e) => set('palavrasChave', e.target.value)}
-          placeholder="Liste as principais palavras-chave, separadas por vírgula"
-        />
-      </div>
-
-      <div>
-        <SectionTitle>7. Observações gerais</SectionTitle>
+        <SectionTitle>6. Observações gerais</SectionTitle>
         <Textarea rows={3} value={form.observacoes ?? ''} onChange={(e) => set('observacoes', e.target.value)} />
       </div>
 
