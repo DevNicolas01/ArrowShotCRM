@@ -78,7 +78,7 @@ export function Sidebar({
               end={end}
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] font-medium transition-all duration-150 ease-in-out ${
                   isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-navy-800 hover:text-white'
                 }`
               }
@@ -93,7 +93,7 @@ export function Sidebar({
               to="/universidade"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] font-medium transition-all duration-150 ease-in-out ${
                   isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-navy-800 hover:text-white'
                 }`
               }
@@ -108,7 +108,7 @@ export function Sidebar({
               to="/equipe"
               onClick={onCloseMobile}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 ease-in-out ${
+                `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] font-medium transition-all duration-150 ease-in-out ${
                   isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-navy-800 hover:text-white'
                 }`
               }
@@ -126,7 +126,7 @@ export function Sidebar({
               <div
                 key={label}
                 title="Módulo em preparação"
-                className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-4 py-2.5 text-sm text-slate-400"
+                className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] text-slate-400"
               >
                 <Icon size={18} />
                 {label}
