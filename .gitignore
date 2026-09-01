@@ -31,3 +31,4 @@ dist-ssr
 # Unrelated project sharing this machine's folder — not part of the CRM.
 /reset21_ebook/
 /reset21_landing/
+.env*
