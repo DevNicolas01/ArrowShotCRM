@@ -7,8 +7,6 @@ export interface CampaignPlanningAccess {
 
   instagramLink?: string
 
-  googleAdsId?: string
-
   gtmContainerCriado?: boolean
   gtmInstaladoNoSite?: boolean
   gtmRastreamentoCompleto?: boolean

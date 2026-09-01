@@ -3,7 +3,7 @@ import { Timestamp } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Save, Plus, Trash2 } from 'lucide-react'
+import { Save, Plus, Trash2, FileDown } from 'lucide-react'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
@@ -117,6 +117,7 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
   const { profile } = useAuth()
   const [form, setForm] = useState<CampaignPlanning>(mergeCampaignPlanning(client.campaignPlanning))
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
     setForm(mergeCampaignPlanning(client.campaignPlanning))
@@ -183,6 +184,24 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
     }
   }
 
+  const handleGeneratePdf = async () => {
+    if (funnelTouched && funnelSum !== 100) {
+      toast.error('A distribuição por funil (Topo + Meio + Fundo) deve somar 100%.')
+      return
+    }
+    setGenerating(true)
+    try {
+      const { generateCampaignPlanningPdf } = await import('../../utils/campaignPlanningPdf')
+      await generateCampaignPlanningPdf(client, form)
+      toast.success('Apresentação gerada')
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao gerar apresentação')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const lastFilled = client.campaignPlanning?.filledAt
   const briefing = client.paidTrafficBriefing
   const briefingFilled = !!briefing?.filledAt
@@ -211,10 +230,6 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
 
           <Field label="Link do perfil do Instagram">
             <Input value={form.acessos.instagramLink ?? ''} onChange={(e) => setAccess('instagramLink', e.target.value)} />
-          </Field>
-
-          <Field label="ID da conta Google Ads">
-            <Input value={form.acessos.googleAdsId ?? ''} onChange={(e) => setAccess('googleAdsId', e.target.value)} />
           </Field>
 
           <div>
@@ -559,9 +574,19 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
         <Textarea rows={3} value={form.observacoesGerais ?? ''} onChange={(e) => set('observacoesGerais', e.target.value)} />
       </div>
 
-      <Button icon={<Save size={14} />} onClick={handleSave} loading={saving} className="self-start">
-        Salvar planejamento
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button icon={<Save size={14} />} onClick={handleSave} loading={saving}>
+          Salvar planejamento
+        </Button>
+        <Button
+          variant="secondary"
+          icon={<FileDown size={14} />}
+          onClick={handleGeneratePdf}
+          loading={generating}
+        >
+          Gerar apresentação
+        </Button>
+      </div>
     </div>
   )
 }
