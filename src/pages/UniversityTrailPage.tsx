@@ -31,8 +31,8 @@ export function UniversityTrailPage() {
       </button>
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{trail?.title ?? 'Trilha'}</h1>
-        <p className="text-sm text-slate-500">{trail?.description}</p>
+        <h1 className="text-[28px] font-extrabold text-slate-900">{trail?.title ?? 'Trilha'}</h1>
+        <p className="text-[15px] text-[#64748B]">{trail?.description}</p>
       </div>
 
       {modules.length > 0 && (

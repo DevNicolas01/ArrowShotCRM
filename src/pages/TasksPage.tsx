@@ -62,8 +62,8 @@ export function TasksPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Tarefas</h1>
-          <p className="text-sm text-slate-500">{filtered.length} tarefa(s)</p>
+          <h1 className="text-[28px] font-extrabold text-slate-900">Tarefas</h1>
+          <p className="text-[15px] text-[#64748B]">{filtered.length} tarefa(s)</p>
         </div>
         <Button icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Nova tarefa
@@ -111,8 +111,8 @@ export function TasksPage() {
       ) : (
         <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <table className="w-full min-w-[720px] text-left text-[15px]">
+            <thead className="border-b border-slate-100 bg-slate-50 text-[13px] font-semibold uppercase tracking-wide text-slate-400">
               <tr>
                 <th className="px-4 py-2.5">Tarefa</th>
                 <th className="px-4 py-2.5">Cliente</th>

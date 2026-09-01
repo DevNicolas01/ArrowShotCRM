@@ -42,8 +42,8 @@ export function ClientsTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white shadow-sm">
-      <table className="w-full min-w-[820px] text-left text-sm">
-        <thead className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+      <table className="w-full min-w-[820px] text-left text-[15px]">
+        <thead className="border-b border-slate-100 text-[13px] font-semibold uppercase tracking-wide text-slate-400">
           <tr>
             <th className="w-10 py-3 pl-4"></th>
             <th className="py-3 pr-3 font-semibold">Nome</th>

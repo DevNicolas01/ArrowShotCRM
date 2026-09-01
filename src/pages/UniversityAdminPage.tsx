@@ -105,8 +105,8 @@ export function UniversityAdminPage() {
       </button>
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Painel Admin — Universidade Arrow Shot</h1>
-        <p className="text-sm text-slate-500">Gerencie trilhas, módulos, progresso e convites.</p>
+        <h1 className="text-[28px] font-extrabold text-slate-900">Painel Admin — Universidade Arrow Shot</h1>
+        <p className="text-[15px] text-[#64748B]">Gerencie trilhas, módulos, progresso e convites.</p>
       </div>
 
       {/* ---------- Trilhas e módulos ---------- */}
@@ -189,12 +189,12 @@ export function UniversityAdminPage() {
         <h2 className="text-sm font-semibold text-slate-700">Progresso por funcionário</h2>
         <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+            <table className="w-full min-w-[480px] text-left text-[15px]">
+              <thead className="border-b border-slate-100 bg-slate-50 text-[13px] font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th className="px-4 py-2.5 font-medium">Pessoa</th>
-                  <th className="px-4 py-2.5 font-medium">Módulos concluídos</th>
-                  <th className="px-4 py-2.5 font-medium">Nota média</th>
+                  <th className="px-4 py-2.5 font-semibold">Pessoa</th>
+                  <th className="px-4 py-2.5 font-semibold">Módulos concluídos</th>
+                  <th className="px-4 py-2.5 font-semibold">Nota média</th>
                 </tr>
               </thead>
               <tbody>

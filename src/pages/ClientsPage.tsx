@@ -39,8 +39,8 @@ export function ClientsPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
-          <p className="text-sm text-slate-500">{filtered.length} cliente(s)</p>
+          <h1 className="text-[28px] font-extrabold text-slate-900">Clientes</h1>
+          <p className="text-[15px] text-[#64748B]">{filtered.length} cliente(s)</p>
         </div>
         <Button style={{ height: '40px' }} icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Novo cliente

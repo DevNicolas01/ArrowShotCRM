@@ -28,7 +28,7 @@ export function DashboardEmptyState({ counts, onExpand }: DashboardEmptyStatePro
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500">
           <CheckCircle2 size={14} className="text-white" />
         </div>
-        <p className="text-sm font-semibold text-slate-700">Tudo em dia por aqui</p>
+        <p className="text-[16px] font-semibold text-slate-700">Tudo em dia por aqui</p>
         <button
           onClick={onExpand}
           className="ml-auto text-xs font-medium text-brand-500 hover:text-brand-600"
@@ -40,7 +40,7 @@ export function DashboardEmptyState({ counts, onExpand }: DashboardEmptyStatePro
         {BADGES.map(({ key, label, dot }) => (
           <span
             key={key}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-xs text-slate-500"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-2.5 py-1 text-[14px] text-slate-500"
           >
             <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
             {counts[key]} {label}

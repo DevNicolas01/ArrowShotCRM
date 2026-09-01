@@ -29,8 +29,8 @@ export function TeamPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Equipe</h1>
-          <p className="text-sm text-slate-500">Perfis, cargos, rotinas e reuniões da equipe Arrow Shot.</p>
+          <h1 className="text-[28px] font-extrabold text-slate-900">Equipe</h1>
+          <p className="text-[15px] text-[#64748B]">Perfis, cargos, rotinas e reuniões da equipe Arrow Shot.</p>
         </div>
         <Button size="sm" icon={<Plus size={14} />} onClick={() => setCreating(true)}>
           Novo membro
@@ -119,12 +119,12 @@ export function TeamPage() {
         </h2>
         <div className="overflow-hidden rounded-xl border border-slate-100 bg-white">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+            <table className="w-full min-w-[560px] text-left text-[15px]">
+              <thead className="border-b border-slate-100 bg-slate-50 text-[13px] font-semibold uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th className="px-4 py-2.5 font-medium">Reunião</th>
-                  <th className="px-4 py-2.5 font-medium">Quando</th>
-                  <th className="px-4 py-2.5 font-medium">Participantes</th>
+                  <th className="px-4 py-2.5 font-semibold">Reunião</th>
+                  <th className="px-4 py-2.5 font-semibold">Quando</th>
+                  <th className="px-4 py-2.5 font-semibold">Participantes</th>
                 </tr>
               </thead>
               <tbody>

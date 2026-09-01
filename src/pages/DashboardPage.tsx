@@ -126,7 +126,7 @@ function WidgetCard({
     >
       <div className={`flex min-w-0 items-center gap-2.5 rounded-t-2xl px-6 py-4 ${styles.headerBg ?? ''}`}>
         <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${styles.iconBg}`}>{icon}</div>
-        <p className="truncate text-[15px] font-semibold text-slate-900">{title}</p>
+        <p className="truncate text-[16px] font-semibold text-slate-900">{title}</p>
         {urgent ? (
           <span className="ml-auto shrink-0 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{count}</span>
         ) : (
@@ -418,10 +418,10 @@ export function DashboardPage() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-[32px] font-extrabold leading-tight text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-400">Visão geral do que precisa da sua atenção hoje.</p>
+          <h1 className="text-[28px] font-extrabold leading-tight text-slate-900">Dashboard</h1>
+          <p className="text-[15px] text-[#64748B]">Visão geral do que precisa da sua atenção hoje.</p>
         </div>
-        <p className="text-[13px] text-slate-400">{todayLabel}</p>
+        <p className="text-[14px] text-slate-400">{todayLabel}</p>
       </div>
 
       {allZero && !expanded ? (
@@ -457,7 +457,7 @@ export function DashboardPage() {
               {buckets.overdue.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-1.5 py-6 text-center">
                   <CheckCircle2 className="text-emerald-500" size={26} />
-                  <p className="text-sm font-medium text-slate-600">Tudo em dia!</p>
+                  <p className="text-[15px] font-medium text-slate-600">Tudo em dia!</p>
                 </div>
               ) : (
                 buckets.overdue.map((t) => (
@@ -587,7 +587,7 @@ export function DashboardPage() {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500">
               <CalendarDays size={15} className="text-white" />
             </div>
-            <p className="text-[15px] font-semibold text-slate-900">Próximas publicações</p>
+            <p className="text-[16px] font-semibold text-slate-900">Próximas publicações</p>
             <span className="ml-auto shrink-0 text-xs font-medium text-slate-400">{buckets.nextPublications.length}</span>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1 px-6 pb-5 pt-1">
@@ -607,13 +607,13 @@ export function DashboardPage() {
         </div>
 
         <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-          <p className="mb-3 text-[15px] font-semibold text-slate-900">Resumo por cliente</p>
+          <p className="mb-3 text-[16px] font-semibold text-slate-900">Resumo por cliente</p>
           {clientSummary.length === 0 ? (
             <EmptyState title="Nenhum cliente ativo" />
           ) : (
             <div className="max-h-80 overflow-y-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="sticky top-0 bg-white text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <table className="w-full text-left text-[15px]">
+                <thead className="sticky top-0 bg-white text-[13px] font-semibold uppercase tracking-wide text-slate-400">
                   <tr>
                     <th className="w-6 py-1.5"></th>
                     <th className="py-1.5 pr-2 font-semibold">Cliente</th>
