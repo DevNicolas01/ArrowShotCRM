@@ -20,8 +20,10 @@ function toDateStr(d: Date) {
 
 export function ReportFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile } = useAuth()
+  // Todos os clientes cadastrados — sem filtrar por status nem por já ter o
+  // ID da conta Meta Ads preenchido (essa checagem acontece só ao clicar em
+  // "Buscar dados", com um aviso específico — ver handleGenerate).
   const { data: clients } = useClients()
-  const activeClients = clients.filter((c) => c.status === 'active')
 
   const [clientId, setClientId] = useState('')
   const [type, setType] = useState<ReportType>('weekly')
@@ -34,7 +36,7 @@ export function ReportFormModal({ open, onClose }: { open: boolean; onClose: () 
   const [weeklyText, setWeeklyText] = useState('')
   const [generated, setGenerated] = useState(false)
 
-  const client = activeClients.find((c) => c.id === clientId)
+  const client = clients.find((c) => c.id === clientId)
 
   const reset = () => {
     setClientId('')
@@ -73,7 +75,9 @@ export function ReportFormModal({ open, onClose }: { open: boolean; onClose: () 
 
     const accountId = client.campaignPlanning?.acessos?.metaAdsAccountId
     if (platforms.includes('meta') && !accountId) {
-      toast.error('Cliente sem ID da conta Meta Ads cadastrado — adicione em Planejamento de Campanha → Acessos das contas.')
+      toast.error(
+        'Este cliente não tem o ID da conta Meta Ads cadastrado. Adicione o ID na aba Planejamento de Campanha → Acessos antes de gerar o relatório.'
+      )
       return
     }
 
@@ -170,7 +174,7 @@ export function ReportFormModal({ open, onClose }: { open: boolean; onClose: () 
           <Field label="Cliente" required>
             <Select value={clientId} onChange={(e) => setClientId(e.target.value)}>
               <option value="">Selecione...</option>
-              {activeClients.map((c) => (
+              {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.companyName}</option>
               ))}
             </Select>
