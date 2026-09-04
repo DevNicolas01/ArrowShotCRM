@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowLeft, Pencil, Plus, Globe, Camera, ThumbsUp, Phone, Mail, MapPin, Sparkles, CheckSquare, MoreVertical, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Globe, Camera, ThumbsUp, Phone, Mail, MapPin, Sparkles, CheckSquare, MoreVertical, Trash2, Upload } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
 import { useTasks } from '../hooks/useTasks'
 import { useContents } from '../hooks/useContents'
@@ -25,6 +25,7 @@ import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { TaskFormModal } from '../components/tasks/TaskFormModal'
 import { ContentDrawer } from '../components/content/ContentDrawer'
 import { ContentFormModal } from '../components/content/ContentFormModal'
+import { ImportEditorialCalendarModal } from '../components/content/ImportEditorialCalendarModal'
 import { CLIENT_PACKAGE_LABEL, CLIENT_STATUS_LABEL, STYLE_CATALOG_LABEL, getClientOwnerIds } from '../types/client'
 import { TASK_STATUS_LABEL } from '../types/task'
 import { CONTENT_STATUS_LABEL } from '../types/content'
@@ -46,6 +47,7 @@ export function ClientDetailPage() {
   const [openContentId, setOpenContentId] = useState<string | null>(null)
   const [creatingTask, setCreatingTask] = useState(false)
   const [creatingContent, setCreatingContent] = useState(false)
+  const [importingCalendar, setImportingCalendar] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -169,9 +171,19 @@ export function ClientDetailPage() {
               label: 'Conteúdos',
               content: (
                 <div className="flex flex-col gap-2">
-                  <Button size="sm" icon={<Plus size={13} />} onClick={() => setCreatingContent(true)} className="self-start">
-                    Novo conteúdo
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" icon={<Plus size={13} />} onClick={() => setCreatingContent(true)}>
+                      Novo conteúdo
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon={<Upload size={13} />}
+                      onClick={() => setImportingCalendar(true)}
+                    >
+                      Importar calendário
+                    </Button>
+                  </div>
                   {contents.length === 0 ? (
                     <EmptyState title="Nenhum conteúdo para este cliente" />
                   ) : (
@@ -218,6 +230,7 @@ export function ClientDetailPage() {
       />
       <TaskFormModal open={creatingTask} onClose={() => setCreatingTask(false)} defaultClientId={client.id} />
       <ContentFormModal open={creatingContent} onClose={() => setCreatingContent(false)} defaultClientId={client.id} />
+      <ImportEditorialCalendarModal open={importingCalendar} onClose={() => setImportingCalendar(false)} clientId={client.id} />
       <TaskDrawer key={`task-${openTaskId ?? 'none'}`} task={openTask} onClose={() => setOpenTaskId(null)} />
       <ContentDrawer key={`content-${openContentId ?? 'none'}`} content={openContent} onClose={() => setOpenContentId(null)} />
     </div>
