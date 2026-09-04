@@ -10,7 +10,7 @@ import { MeetingRow } from '../meetings/MeetingRow'
 import type { Client } from '../../types'
 
 /** Aba "Reuniões" da ficha do cliente — só as reuniões vinculadas a este
- *  cliente (type === 'client' + clientId === client.id). */
+ *  cliente (clientId === client.id, ver isClientMeetingType). */
 export function ClientMeetingsTab({ client }: { client: Client }) {
   const { data: meetings } = useClientMeetings(client.id)
   const { data: users } = useUsers()

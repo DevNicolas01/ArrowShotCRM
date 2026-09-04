@@ -3,7 +3,17 @@ import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
 import { Avatar } from '../ui/Avatar'
 import { findUserIdByName } from '../../utils/userLookup'
-import { MEETING_TYPE_LABEL, MEETING_DEFAULT_PARTICIPANT_NAMES, type AppUser, type Client, type MeetingType } from '../../types'
+import {
+  MEETING_TYPE_LABEL,
+  MEETING_TYPE_GROUP_LABEL,
+  MEETING_TYPE_GROUPS,
+  MEETING_TYPE_SCHEDULE_HINT,
+  MEETING_DEFAULT_PARTICIPANT_NAMES,
+  isClientMeetingType,
+  type AppUser,
+  type Client,
+  type MeetingType,
+} from '../../types'
 import type { ActionItemFormState, MeetingFormState } from './meetingFormState'
 
 export function MeetingForm({
@@ -27,7 +37,7 @@ export function MeetingForm({
     const participantIds = defaultNames
       ? defaultNames.map((name) => findUserIdByName(users, name)).filter((id): id is string => !!id)
       : []
-    onChange({ ...value, type, participantIds, clientId: type === 'client' ? value.clientId : '' })
+    onChange({ ...value, type, participantIds, clientId: isClientMeetingType(type) ? value.clientId : '' })
   }
 
   const toggleParticipant = (uid: string) => {
@@ -46,10 +56,17 @@ export function MeetingForm({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label="Tipo de reunião" required>
           <Select value={value.type} onChange={(e) => handleTypeChange(e.target.value as MeetingType)}>
-            {(Object.entries(MEETING_TYPE_LABEL) as [MeetingType, string][]).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
+            {(Object.entries(MEETING_TYPE_GROUPS) as [keyof typeof MEETING_TYPE_GROUPS, MeetingType[]][]).map(([group, types]) => (
+              <optgroup key={group} label={MEETING_TYPE_GROUP_LABEL[group]}>
+                {types.map((t) => (
+                  <option key={t} value={t}>{MEETING_TYPE_LABEL[t]}</option>
+                ))}
+              </optgroup>
             ))}
           </Select>
+          {MEETING_TYPE_SCHEDULE_HINT[value.type] && (
+            <p className="mt-1 text-xs text-slate-400">{MEETING_TYPE_SCHEDULE_HINT[value.type]}</p>
+          )}
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Data" required>
@@ -61,7 +78,7 @@ export function MeetingForm({
         </div>
       </div>
 
-      {value.type === 'client' && (
+      {isClientMeetingType(value.type) && (
         <Field label="Cliente vinculado">
           <Select value={value.clientId} onChange={(e) => set('clientId', e.target.value)}>
             <option value="">Selecione...</option>

@@ -17,15 +17,16 @@ export function MeetingFormModal({
 }: {
   open: boolean
   onClose: () => void
-  /** Pre-fills type "Reunião com Cliente" + this client — used by the
-   *  ficha do cliente's "Registrar reunião" button. */
+  /** Pre-fills type "Onboarding" (primeiro tipo do grupo "Reuniões com
+   *  clientes") + this client — used by the ficha do cliente's "Registrar
+   *  reunião" button. */
   defaultClientId?: string
 }) {
   const { profile } = useAuth()
   const { data: users } = useUsers()
   const { data: clients } = useClients()
 
-  const defaultType: MeetingType = defaultClientId ? 'client' : 'daily'
+  const defaultType: MeetingType = defaultClientId ? 'onboarding' : 'daily'
   const [form, setForm] = useState<MeetingFormState>(() => buildDefaultMeetingForm({ type: defaultType, clientId: defaultClientId ?? '' }))
   const [saving, setSaving] = useState(false)
 

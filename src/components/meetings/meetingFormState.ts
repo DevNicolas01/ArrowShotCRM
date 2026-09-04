@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore'
-import type { Meeting, MeetingInput, MeetingType } from '../../types'
+import { isClientMeetingType, type Meeting, type MeetingInput, type MeetingType } from '../../types'
 
 export interface ActionItemFormState {
   id: string
@@ -72,7 +72,7 @@ export function formStateToMeetingInput(state: MeetingFormState): MeetingInput {
     date: Timestamp.fromDate(new Date(y, m - 1, d)),
     time: state.time || undefined,
     participantIds: state.participantIds,
-    clientId: state.type === 'client' ? state.clientId || undefined : undefined,
+    clientId: isClientMeetingType(state.type) ? state.clientId || undefined : undefined,
     agenda: state.agenda.trim() || undefined,
     decisions: state.decisions.trim() || undefined,
     actionItems: state.actionItems

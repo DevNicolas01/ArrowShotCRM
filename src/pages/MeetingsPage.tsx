@@ -9,7 +9,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { MeetingFormModal } from '../components/meetings/MeetingFormModal'
 import { MeetingDrawer } from '../components/meetings/MeetingDrawer'
 import { MeetingRow } from '../components/meetings/MeetingRow'
-import { MEETING_TYPE_LABEL, type MeetingType } from '../types'
+import { MEETING_TYPE_LABEL, MEETING_TYPE_GROUP_LABEL, MEETING_TYPE_GROUPS, type MeetingType } from '../types'
 
 export function MeetingsPage() {
   const { data: meetings } = useAllMeetings()
@@ -88,8 +88,12 @@ export function MeetingsPage() {
           className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100"
         >
           <option value="">Todos os tipos</option>
-          {(Object.entries(MEETING_TYPE_LABEL) as [MeetingType, string][]).map(([v, l]) => (
-            <option key={v} value={v}>{l}</option>
+          {(Object.entries(MEETING_TYPE_GROUPS) as [keyof typeof MEETING_TYPE_GROUPS, MeetingType[]][]).map(([group, types]) => (
+            <optgroup key={group} label={MEETING_TYPE_GROUP_LABEL[group]}>
+              {types.map((t) => (
+                <option key={t} value={t}>{MEETING_TYPE_LABEL[t]}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <select

@@ -1,25 +1,66 @@
 import type { Timestamp } from 'firebase/firestore'
 import type { BaseDoc } from './common'
 
-export type MeetingType = 'daily' | 'partnership' | 'one_on_one' | 'client' | 'monthly_team' | 'other'
+export type MeetingType =
+  | 'daily'
+  | 'continuous_improvement'
+  | 'partnership'
+  | 'one_on_one'
+  | 'monthly_team'
+  | 'onboarding'
+  | 'briefing'
+  | 'strategy_access'
+  | 'monthly_consulting'
 
 export const MEETING_TYPE_LABEL: Record<MeetingType, string> = {
-  daily: 'Reunião Diária',
+  daily: 'Daily',
+  continuous_improvement: 'Melhoria Contínua',
   partnership: 'Reunião de Sociedade',
   one_on_one: 'One-a-One',
-  client: 'Reunião com Cliente',
   monthly_team: 'Reunião Mensal da Equipe',
-  other: 'Outra',
+  onboarding: 'Onboarding',
+  briefing: 'Reunião de Briefing',
+  strategy_access: 'Reunião de Estratégia e Acessos',
+  monthly_consulting: 'Consultoria Mensal',
+}
+
+/** Agrupamento exibido como dois <optgroup> no <select> de tipo (ver
+ *  MeetingForm) — também decide quando mostrar o seletor de cliente:
+ *  qualquer tipo do grupo "client" precisa de um cliente vinculado. */
+export const MEETING_TYPE_GROUP_LABEL = {
+  internal: 'Reuniões internas',
+  client: 'Reuniões com clientes',
+} as const
+
+export type MeetingTypeGroup = keyof typeof MEETING_TYPE_GROUP_LABEL
+
+export const MEETING_TYPE_GROUPS: Record<MeetingTypeGroup, MeetingType[]> = {
+  internal: ['daily', 'continuous_improvement', 'partnership', 'one_on_one', 'monthly_team'],
+  client: ['onboarding', 'briefing', 'strategy_access', 'monthly_consulting'],
+}
+
+export function isClientMeetingType(type: MeetingType): boolean {
+  return MEETING_TYPE_GROUPS.client.includes(type)
+}
+
+/** Nota de recorrência mostrada como texto de apoio abaixo do <select>
+ *  quando um desses tipos é escolhido — informativo, não persistido. */
+export const MEETING_TYPE_SCHEDULE_HINT: Partial<Record<MeetingType, string>> = {
+  daily: 'Toda segunda a sexta, às 9h.',
+  continuous_improvement: 'Toda sexta, às 10h.',
 }
 
 /** Cor do badge por tipo — ver spec do módulo de Reuniões. */
 export const MEETING_TYPE_BADGE: Record<MeetingType, string> = {
   daily: 'bg-blue-50 text-blue-600',
+  continuous_improvement: 'bg-cyan-50 text-cyan-600',
   partnership: 'bg-violet-50 text-violet-600',
   one_on_one: 'bg-emerald-50 text-emerald-600',
-  client: 'bg-amber-50 text-amber-600',
   monthly_team: 'bg-slate-100 text-slate-600',
-  other: 'bg-slate-100 text-slate-600',
+  onboarding: 'bg-amber-50 text-amber-600',
+  briefing: 'bg-orange-50 text-orange-600',
+  strategy_access: 'bg-fuchsia-50 text-fuchsia-600',
+  monthly_consulting: 'bg-rose-50 text-rose-600',
 }
 
 /** Participantes marcados por padrão ao escolher cada tipo — nomes
@@ -28,6 +69,7 @@ export const MEETING_TYPE_BADGE: Record<MeetingType, string> = {
  *  fora deste mapa começam sem ninguém pré-marcado. */
 export const MEETING_DEFAULT_PARTICIPANT_NAMES: Partial<Record<MeetingType, string[]>> = {
   daily: ['Bruno', 'Jamilson', 'Ciane', 'Nicolas'],
+  continuous_improvement: ['Bruno', 'Jamilson', 'Ciane', 'Nicolas'],
   monthly_team: ['Bruno', 'Jamilson', 'Ciane', 'Nicolas'],
   partnership: ['Bruno', 'Ciane'],
 }
@@ -50,7 +92,8 @@ export interface Meeting extends BaseDoc {
   time?: string
   /** uids da equipe interna presentes. */
   participantIds: string[]
-  /** Só relevante quando type === 'client'. */
+  /** Só relevante para tipos do grupo "Reuniões com clientes" — ver
+   *  isClientMeetingType. */
   clientId?: string
   /** Pauta — o que foi discutido. */
   agenda?: string
