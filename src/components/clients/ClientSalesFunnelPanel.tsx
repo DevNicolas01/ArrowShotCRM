@@ -97,10 +97,11 @@ function CardTitle({ children }: { children: string }) {
 }
 
 function stageColor(level: BenchmarkLevel): string {
-  if (level === 'green') return '#10B981'
   if (level === 'yellow') return '#F59E0B'
   if (level === 'red') return '#EF4444'
-  return '#1E40AF'
+  // 'green' e null (sem benchmark calculável, ex.: primeira etapa ou
+  // rede ainda não selecionada) usam o mesmo verde neutro/positivo.
+  return '#10B981'
 }
 
 interface FunnelStageData {
