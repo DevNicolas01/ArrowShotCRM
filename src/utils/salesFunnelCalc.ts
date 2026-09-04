@@ -11,7 +11,7 @@ import type { SalesFunnelMetaObjective, SalesFunnelNetwork, SalesFunnelService }
 
 export type BenchmarkLevel = 'green' | 'yellow' | 'red' | null
 
-interface Range {
+export interface Range {
   min: number
   max: number
 }
@@ -91,6 +91,19 @@ export function getStageThreshold(
   const range = NETWORK_BENCHMARKS[key][stage]
   const intensity = servico ? SERVICE_INTENSITY[servico] : 'media'
   return adjustedThreshold(range, intensity)
+}
+
+/** Faixa "crua" de mercado (não ajustada por serviço) para a etapa — usada
+ *  para exibir "esperado: Y%–Z%" no diagnóstico automático. `null` quando não
+ *  há rede/objetivo suficiente selecionado. */
+export function getStageRange(
+  stage: FunnelStage,
+  rede?: SalesFunnelNetwork,
+  metaObjetivo?: SalesFunnelMetaObjective
+): Range | null {
+  const key = benchmarkKey(rede, metaObjetivo)
+  if (!key) return null
+  return NETWORK_BENCHMARKS[key][stage]
 }
 
 /** Verde: dentro/acima do esperado. Amarelo: abaixo do esperado, mas não
