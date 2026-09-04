@@ -13,6 +13,7 @@ import { FilesPanel } from '../files/FilesPanel'
 import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
+import { useAssignees } from '../../hooks/useAssignees'
 import { updateTask, deleteTask, duplicateRecurringTask } from '../../services/taskService'
 import { advanceClientWorkflow, scheduleBriefingMeeting } from '../../services/clientWorkflowTemplates'
 import {
@@ -34,6 +35,7 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
   const { profile } = useAuth()
   const { data: clients } = useClients()
   const { data: users } = useUsers()
+  const assignees = useAssignees()
   const [title, setTitle] = useState(task?.title ?? '')
   const [briefingDateInput, setBriefingDateInput] = useState(toDateInputValue(task?.briefingMeetingDate))
   const [briefingTimeInput, setBriefingTimeInput] = useState(task?.briefingMeetingTime ?? '')
@@ -142,9 +144,9 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
               onChange={(e) => save({ assignedTo: e.target.value || undefined })}
             >
               <option value="">Sem responsável</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
+              {assignees.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </Select>

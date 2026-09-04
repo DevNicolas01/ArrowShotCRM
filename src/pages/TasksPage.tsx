@@ -4,7 +4,7 @@ import { Plus, Search, RotateCw } from 'lucide-react'
 import { isPast, isToday } from 'date-fns'
 import { useAllTasks } from '../hooks/useTasks'
 import { useClients } from '../hooks/useClients'
-import { useUsers } from '../hooks/useUsers'
+import { useAssignees } from '../hooks/useAssignees'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { TaskFormModal } from '../components/tasks/TaskFormModal'
 import { Button } from '../components/ui/Button'
@@ -30,7 +30,7 @@ function rowTint(task: Task): string {
 export function TasksPage() {
   const { data: allTasks, loading } = useAllTasks()
   const { data: clients } = useClients()
-  const { data: users } = useUsers()
+  const assignees = useAssignees()
   const { canSeeAllTasks, viewerId } = useTaskVisibility()
   const tasks = useMemo(() => filterVisibleTasks(allTasks, canSeeAllTasks, viewerId), [allTasks, canSeeAllTasks, viewerId])
 
@@ -56,7 +56,7 @@ export function TasksPage() {
   }, [tasks, search, clientFilter, assigneeFilter, statusFilter, priorityFilter])
 
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c]))
-  const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
+  const userMap = Object.fromEntries(assignees.map((a) => [a.id, a]))
 
   return (
     <div className="flex flex-col gap-4">
@@ -88,8 +88,8 @@ export function TasksPage() {
         </select>
         <select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">
           <option value="">Todos os responsáveis</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>{u.name}</option>
+          {assignees.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
           ))}
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-[38px] rounded-lg border border-slate-200 px-3 text-sm transition-all duration-150 ease-in-out focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100">

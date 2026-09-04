@@ -6,7 +6,7 @@ import { CheckCircle2, AlertTriangle, Clock, Pencil, CalendarDays, Plus } from '
 import { useAllTasks } from '../hooks/useTasks'
 import { useAllContents } from '../hooks/useContents'
 import { useClients } from '../hooks/useClients'
-import { useUsers } from '../hooks/useUsers'
+import { useAssigneeMap, type Assignee } from '../hooks/useAssignees'
 import { EmptyState } from '../components/ui/EmptyState'
 import { DashboardEmptyState } from '../components/dashboard/DashboardEmptyState'
 import { Button } from '../components/ui/Button'
@@ -20,7 +20,6 @@ import { CONTENT_PILLAR_LABEL, CONTENT_FORMAT_LABEL, CONTENT_TYPE_LABEL } from '
 import type { Task } from '../types/task'
 import type { Content } from '../types/content'
 import type { Client } from '../types/client'
-import type { AppUser } from '../types'
 import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
 
 type ClientHealth = 'green' | 'yellow' | 'red'
@@ -170,7 +169,7 @@ function OverdueTaskRow({ task, clientName, onClick }: { task: Task; clientName?
   )
 }
 
-function TodayTaskRow({ task, assignee, onClick }: { task: Task; assignee?: AppUser; onClick: () => void }) {
+function TodayTaskRow({ task, assignee, onClick }: { task: Task; assignee?: Assignee; onClick: () => void }) {
   const due = task.dueDate?.toDate()
   const hasTime = due && (due.getHours() !== 0 || due.getMinutes() !== 0)
   return (
@@ -195,7 +194,7 @@ function UpcomingTaskRow({
 }: {
   task: Task
   clientName?: string
-  assignee?: AppUser
+  assignee?: Assignee
   onClick: () => void
 }) {
   return (
@@ -333,7 +332,7 @@ export function DashboardPage() {
   const { data: tasks } = useAllTasks()
   const { data: contents } = useAllContents()
   const { data: clients } = useClients()
-  const { data: users } = useUsers()
+  const userMap = useAssigneeMap()
   const { canSeeAllTasks, viewerId } = useTaskVisibility()
   const visibleTasks = useMemo(() => filterVisibleTasks(tasks, canSeeAllTasks, viewerId), [tasks, canSeeAllTasks, viewerId])
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
@@ -381,7 +380,6 @@ export function DashboardPage() {
     buckets.waitingApproval.length === 0 &&
     buckets.approved.length === 0
 
-  const userMap = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users])
   const clientMap = useMemo(() => Object.fromEntries(clients.map((c) => [c.id, c])), [clients])
 
   const upcomingGroups = useMemo(() => {

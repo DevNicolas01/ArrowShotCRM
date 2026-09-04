@@ -6,7 +6,7 @@ import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
-import { useUsers } from '../../hooks/useUsers'
+import { useAssignees } from '../../hooks/useAssignees'
 import { createTask } from '../../services/taskService'
 import { TASK_PRIORITY_LABEL, TASK_BOARD_LABEL, FIRST_BOARD_STATUS, type TaskPriority, type TaskBoard } from '../../types/task'
 
@@ -25,7 +25,7 @@ export function TaskFormModal({
 }) {
   const { profile } = useAuth()
   const { data: clients } = useClients()
-  const { data: users } = useUsers()
+  const assignees = useAssignees()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -109,9 +109,9 @@ export function TaskFormModal({
           <Field label="Responsável">
             <Select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
               <option value="">Sem responsável</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
+              {assignees.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </Select>
@@ -131,7 +131,7 @@ export function TaskFormModal({
             </Select>
           </Field>
 
-          <Field label="Board (Kanban)">
+          <Field label="Fluxo de trabalho">
             <Select value={board} onChange={(e) => setBoard(e.target.value as TaskBoard | '')}>
               <option value="">Nenhum</option>
               {Object.entries(TASK_BOARD_LABEL).map(([value, label]) => (
