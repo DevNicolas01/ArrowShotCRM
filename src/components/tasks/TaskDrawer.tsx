@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { useAssignees } from '../../hooks/useAssignees'
-import { updateTask, deleteTask, duplicateRecurringTask } from '../../services/taskService'
+import { updateTask, deleteTask, duplicateRecurringTask, notifyTaskCompleted } from '../../services/taskService'
 import { advanceClientWorkflow, scheduleBriefingMeeting } from '../../services/clientWorkflowTemplates'
 import {
   TASK_PRIORITY_LABEL,
@@ -44,9 +44,12 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
 
   const save = async (data: Partial<Task>) => {
     await updateTask(task.id, data, profile.id, profile.name)
-    if (data.status === 'done' && task.status !== 'done' && task.workflowStep) {
+    if (data.status === 'done' && task.status !== 'done') {
       const client = clients.find((c) => c.id === task.clientId)
-      if (client) await advanceClientWorkflow(task, client, profile.id, profile.name, users)
+      if (client) {
+        if (task.workflowStep) await advanceClientWorkflow(task, client, profile.id, profile.name, users)
+        await notifyTaskCompleted(task, client, profile.id, profile.name)
+      }
     }
   }
 

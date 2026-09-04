@@ -4,18 +4,10 @@ import { ptBR } from 'date-fns/locale'
 import { createTask, getClientTasks } from './taskService'
 import { createCalendarEvent } from './calendarService'
 import { createNotification } from './notificationService'
+import { findUserIdByName } from '../utils/userLookup'
 import type { Client } from '../types/client'
 import type { AppUser } from '../types/user'
 import type { ChecklistItem, TaskPriority, TaskRecurrence, WorkflowStepKey } from '../types/task'
-
-/** Resolves "Responsável: Jamilson/Ciane" from the templates below to a real
- *  uid by matching against the team roster (case-insensitive, matches on
- *  first name). Returns undefined — task stays unassigned — if that person
- *  doesn't have a CRM account yet (see README: accounts are created manually
- *  in the Firebase Console). */
-function findUserIdByName(users: AppUser[], name: string): string | undefined {
-  return users.find((u) => u.name.toLowerCase().includes(name.toLowerCase()))?.id
-}
 
 function toChecklist(items: string[]): ChecklistItem[] {
   return items.map((text) => ({ id: crypto.randomUUID(), text, done: false }))
@@ -390,6 +382,33 @@ export async function scheduleBriefingMeeting(
       createNotification({
         userId: recipientId,
         type: 'briefing_scheduled',
+        message,
+        entityType: 'client',
+        entityId: client.id,
+      })
+    )
+  )
+}
+
+/** Called when the CS (Jamilson) saves the Briefing de Tráfego Pago — notifies
+ *  the gestores (Ciane e Nicolas) so they know the planning stage can start. */
+export async function notifyBriefingFilled(
+  client: Pick<Client, 'id' | 'companyName'>,
+  userId: string,
+  userName: string,
+  users: AppUser[]
+) {
+  const message = `📋 Briefing preenchido — ${client.companyName}\nSalvo por ${userName} — acesse o planejamento`
+
+  const recipientNames = ['Ciane', 'Nicolas']
+  const recipientIds = new Set(recipientNames.map((name) => findUserIdByName(users, name)).filter((id): id is string => !!id))
+  recipientIds.delete(userId)
+
+  await Promise.all(
+    Array.from(recipientIds).map((recipientId) =>
+      createNotification({
+        userId: recipientId,
+        type: 'briefing_filled',
         message,
         entityType: 'client',
         entityId: client.id,

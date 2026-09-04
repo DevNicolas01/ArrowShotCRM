@@ -7,8 +7,10 @@ import { Save, Plus, X } from 'lucide-react'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
+import { useUsers } from '../../hooks/useUsers'
 import { updateClient } from '../../services/clientService'
 import { markBriefingChecklistDone } from '../../services/taskService'
+import { notifyBriefingFilled } from '../../services/clientWorkflowTemplates'
 import {
   EMPTY_PAID_TRAFFIC_BRIEFING,
   CREDIT_CARD_FOR_ADS_LABEL,
@@ -85,6 +87,7 @@ function ContactListField({
 
 export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
   const { profile } = useAuth()
+  const { data: users } = useUsers()
   const [form, setForm] = useState<PaidTrafficBriefing>(client.paidTrafficBriefing ?? EMPTY_PAID_TRAFFIC_BRIEFING)
   const [saving, setSaving] = useState(false)
 
@@ -102,6 +105,7 @@ export function ClientPaidTrafficBriefingPanel({ client }: { client: Client }) {
       const payload: PaidTrafficBriefing = { ...form, preenchidoPor: profile.name, filledAt: Timestamp.now() }
       await updateClient(client.id, { paidTrafficBriefing: payload }, profile.id, profile.name)
       await markBriefingChecklistDone(client.id, profile.id, profile.name)
+      await notifyBriefingFilled(client, profile.id, profile.name, users)
       toast.success('Briefing salvo')
     } catch (err) {
       console.error(err)

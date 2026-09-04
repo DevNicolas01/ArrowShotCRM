@@ -2,21 +2,63 @@ import type { Timestamp } from 'firebase/firestore'
 import type { EntityType } from './common'
 
 export type NotificationType =
+  // Legacy types (public content-approval flow, generic task assignment).
   | 'task_assigned'
   | 'mention'
   | 'approval_requested'
   | 'content_approved'
   | 'change_requested'
   | 'due_soon'
-  | 'briefing_scheduled'
+  // Sistema de notificações internas — ver README/spec do módulo.
+  | 'briefing_scheduled' // 1. Reunião agendada
+  | 'task_completed' // 2. Tarefa concluída
+  | 'task_overdue' // 3. Tarefa atrasada
+  | 'new_client' // 4. Novo cliente
+  | 'briefing_filled' // 5. Briefing preenchido
+  | 'content_review_requested' // 6. Conteúdo aguardando aprovação (interna)
+  | 'content_ready_to_schedule' // 7. Conteúdo aprovado (interna)
+  | 'funnel_saved' // 8. Funil comercial salvo
+  | 'task_reminder' // 9. Lembrete de tarefa (vence amanhã)
 
 export interface AppNotification {
   id: string
   userId: string
   type: NotificationType
   message: string
+  /** Who generated the notification — shown as its own small line in the UI
+   *  (separate from `message`, which already carries the full sentence). */
+  actorName?: string
   entityType?: EntityType
   entityId?: string
   read: boolean
   createdAt: Timestamp
+}
+
+export const NOTIFICATION_TYPE_LABEL: Record<NotificationType, string> = {
+  task_assigned: 'Tarefa atribuída',
+  mention: 'Menção',
+  approval_requested: 'Aprovação solicitada',
+  content_approved: 'Conteúdo aprovado pelo cliente',
+  change_requested: 'Alteração solicitada pelo cliente',
+  due_soon: 'Vencimento próximo',
+  briefing_scheduled: 'Reunião agendada',
+  task_completed: 'Tarefa concluída',
+  task_overdue: 'Tarefa atrasada',
+  new_client: 'Novo cliente',
+  briefing_filled: 'Briefing preenchido',
+  content_review_requested: 'Conteúdo aguardando aprovação',
+  content_ready_to_schedule: 'Conteúdo aprovado',
+  funnel_saved: 'Funil comercial salvo',
+  task_reminder: 'Lembrete de tarefa',
+}
+
+/** Notifications older than this are pruned client-side (no backend
+ *  scheduler in this project — see taskDueDateSweep/useNotifications). */
+export const NOTIFICATION_RETENTION_DAYS = 30
+
+/** A notification with no `createdAt` yet (serverTimestamp() briefly
+ *  unresolved right after creation) is treated as brand new, never stale. */
+export function isNotificationStale(n: Pick<AppNotification, 'createdAt'>): boolean {
+  const cutoff = Date.now() - NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000
+  return (n.createdAt?.toMillis() ?? Infinity) < cutoff
 }

@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
+import { useTaskDueDateSweep } from '../../hooks/useTaskDueDateSweep'
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  useTaskDueDateSweep()
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100">

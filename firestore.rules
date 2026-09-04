@@ -169,9 +169,11 @@ service cloud.firestore {
 
     // ---------- notifications ----------
     match /notifications/{notificationId} {
-      allow read: if isOwnUser(resource.data.userId);
+      // Admin (Bruno) sees every notification, not just their own — see the
+      // in-app notification system's role-visibility rules.
+      allow read: if isOwnUser(resource.data.userId) || isAdmin();
       allow create: if isSignedIn() || isPublicApprovalNotification();
-      allow update: if isOwnUser(resource.data.userId);
+      allow update: if isOwnUser(resource.data.userId) || isAdmin();
       allow delete: if isOwnUser(resource.data.userId) || isAdmin();
     }
 

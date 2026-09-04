@@ -6,7 +6,10 @@ import { ptBR } from 'date-fns/locale'
 import { Save, ChevronDown, TrendingUp, Wallet, Tag, Target, Handshake, Percent } from 'lucide-react'
 import { Field, Input, Select } from '../ui/Field'
 import { useAuth } from '../../context/AuthContext'
+import { useUsers } from '../../hooks/useUsers'
 import { updateClient } from '../../services/clientService'
+import { createNotification } from '../../services/notificationService'
+import { findUserIdByName } from '../../utils/userLookup'
 import { maskCurrencyInput, parseCurrencyToNumber } from '../../utils/masks'
 import {
   getBenchmarkLevel,
@@ -187,6 +190,7 @@ function GoalBar({ label, actualText, pct }: { label: string; actualText: string
 
 export function ClientSalesFunnelPanel({ client }: { client: Client }) {
   const { profile } = useAuth()
+  const { data: users } = useUsers()
   const [form, setForm] = useState<FormState>(buildInitialForm(client))
   const [saving, setSaving] = useState(false)
 
@@ -297,6 +301,20 @@ export function ClientSalesFunnelPanel({ client }: { client: Client }) {
         filledAt: Timestamp.now(),
       }
       await updateClient(client.id, { salesFunnel: payload }, profile.id, profile.name)
+
+      const brunoId = findUserIdByName(users, 'Bruno')
+      if (brunoId && brunoId !== profile.id) {
+        const dateLabel = format(new Date(), 'dd/MM/yyyy', { locale: ptBR })
+        await createNotification({
+          userId: brunoId,
+          type: 'funnel_saved',
+          message: `📊 Funil comercial atualizado — ${client.companyName}\nSalvo por ${profile.name} em ${dateLabel}`,
+          actorName: profile.name,
+          entityType: 'client',
+          entityId: client.id,
+        })
+      }
+
       toast.success('Funil comercial salvo')
     } catch (err) {
       console.error(err)

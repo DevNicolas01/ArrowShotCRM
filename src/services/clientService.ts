@@ -1,19 +1,26 @@
 import { orderBy, where, doc, writeBatch, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
-import type { Client } from '../types'
+import type { AppUser, Client } from '../types'
 import { db } from '../firebase/config'
 import { collectionService } from './firestore'
 import { logActivity } from './activityService'
+import { createNotification } from './notificationService'
 import { getClientTasks } from './taskService'
 import { getClientContents } from './contentService'
 import { getClientCalendarEvents } from './calendarService'
+import { getInternalStaffIds } from '../utils/userLookup'
 
 const COLLECTION = 'clients'
 const base = collectionService<Client>(COLLECTION)
 
+/** `users`, when given, notifies the whole internal team (everyone but the
+ *  creator) that a new client was registered. Optional + defaults to []
+ *  purely so this stays callable from anywhere that doesn't happen to have
+ *  the users list handy — no notification fires in that case. */
 export async function createClient(
   data: Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'>,
   userId: string,
-  userName: string
+  userName: string,
+  users: AppUser[] = []
 ) {
   const id = await base.create(data, userId)
   await logActivity({
@@ -25,6 +32,26 @@ export async function createClient(
     userId,
     userName,
   })
+
+  const hasTraffic = !!data.modules?.paidTraffic
+  const hasSocial = !!data.modules?.socialMedia
+  const serviceLabel = hasTraffic && hasSocial ? 'Ambos' : hasTraffic ? 'Tráfego' : hasSocial ? 'Social Media' : 'Não definido'
+  const message = `🆕 Novo cliente cadastrado: ${data.companyName}\nServiço: ${serviceLabel}\nCadastrado por: ${userName}`
+
+  const recipientIds = getInternalStaffIds(users).filter((uid) => uid !== userId)
+  await Promise.all(
+    recipientIds.map((recipientId) =>
+      createNotification({
+        userId: recipientId,
+        type: 'new_client',
+        message,
+        actorName: userName,
+        entityType: 'client',
+        entityId: id,
+      })
+    )
+  )
+
   return id
 }
 

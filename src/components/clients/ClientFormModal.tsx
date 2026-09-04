@@ -130,7 +130,7 @@ export function ClientFormModal({
         await updateClient(client.id, basePayload, profile.id, profile.name)
         toast.success('Cliente atualizado')
       } else {
-        const newClientId = await createClient({ ...basePayload, status: 'prospect' }, profile.id, profile.name)
+        const newClientId = await createClient({ ...basePayload, status: 'prospect' }, profile.id, profile.name, users)
         if (createTasks) {
           const newClient = { id: newClientId, companyName: basePayload.companyName, modules: basePayload.modules }
           await createInitialWorkflowTasks(newClient, profile.id, profile.name, users)

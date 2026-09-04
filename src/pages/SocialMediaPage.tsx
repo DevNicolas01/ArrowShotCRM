@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus, Sparkles } from 'lucide-react'
 import { useAllContents } from '../hooks/useContents'
 import { useClients } from '../hooks/useClients'
@@ -38,12 +39,27 @@ export function SocialMediaPage() {
   const { data: contents } = useAllContents()
   const { data: clients } = useClients()
   const { data: users } = useUsers()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [openContentId, setOpenContentId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [clientFilter, setClientFilter] = useState('')
   const [assigneeFilter, setAssigneeFilter] = useState('')
   const [formatFilter, setFormatFilter] = useState('')
+
+  // Deep link from a notification (?content=id) — open the drawer once,
+  // then drop the param so the URL stays clean afterwards.
+  useEffect(() => {
+    const id = searchParams.get('content')
+    if (id) {
+      setOpenContentId(id)
+      setSearchParams((params) => {
+        params.delete('content')
+        return params
+      }, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const openContent = contents.find((c) => c.id === openContentId) ?? null
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c]))
@@ -119,7 +135,10 @@ export function SocialMediaPage() {
           )}
           onMove={(content, newStatus, newOrder) => {
             if (!profile) return
-            moveContentStatus(content, newStatus, newOrder, profile.id, profile.name)
+            moveContentStatus(content, newStatus, newOrder, profile.id, profile.name, {
+              clientName: clientMap[content.clientId]?.companyName ?? '—',
+              users,
+            })
           }}
         />
       </div>

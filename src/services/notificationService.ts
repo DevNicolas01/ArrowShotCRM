@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, updateDoc, where, serverTimestamp, type FirestoreError } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, deleteDoc, where, serverTimestamp, type FirestoreError } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import type { AppNotification, EntityType, NotificationType } from '../types'
 import { collectionService } from './firestore'
@@ -10,6 +10,7 @@ export async function createNotification(params: {
   userId: string
   type: NotificationType
   message: string
+  actorName?: string
   entityType?: EntityType
   entityId?: string
 }) {
@@ -17,6 +18,7 @@ export async function createNotification(params: {
     userId: params.userId,
     type: params.type,
     message: params.message,
+    actorName: params.actorName ?? null,
     entityType: params.entityType ?? null,
     entityId: params.entityId ?? null,
     read: false,
@@ -25,13 +27,19 @@ export async function createNotification(params: {
 }
 
 /** No orderBy on purpose — a single equality filter needs no composite
- *  index. The hook sorts newest-first client-side instead. */
+ *  index. The hook sorts newest-first client-side instead.
+ *
+ *  `isAdmin` skips the `userId` filter entirely: Bruno (Admin) sees every
+ *  notification in the platform, not just his own (see firestore.rules —
+ *  admin read access mirrors this query). */
 export function subscribeMyNotifications(
   userId: string,
+  isAdmin: boolean,
   onData: (items: AppNotification[]) => void,
   onError?: (err: FirestoreError) => void
 ) {
-  return base.subscribe([where('userId', '==', userId)], onData, onError)
+  const constraints = isAdmin ? [] : [where('userId', '==', userId)]
+  return base.subscribe(constraints, onData, onError)
 }
 
 export async function markNotificationRead(id: string) {
@@ -40,4 +48,16 @@ export async function markNotificationRead(id: string) {
 
 export async function markAllNotificationsRead(notifications: AppNotification[]) {
   await Promise.all(notifications.filter((n) => !n.read).map((n) => markNotificationRead(n.id)))
+}
+
+export async function deleteNotification(id: string) {
+  await deleteDoc(doc(db, COLLECTION, id))
+}
+
+/** Best-effort cleanup for the 30-day retention policy — called from
+ *  useNotifications whenever stale rows show up in a snapshot. Failures are
+ *  swallowed by the caller; there's no backend job to retry them, so the
+ *  next snapshot just tries again. */
+export async function deleteNotifications(notifications: AppNotification[]) {
+  await Promise.all(notifications.map((n) => deleteNotification(n.id)))
 }

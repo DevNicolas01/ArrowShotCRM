@@ -1,8 +1,11 @@
 import { orderBy, where, getDocs, query, type QueryConstraint, type FirestoreError } from 'firebase/firestore'
-import type { Content, ContentStatus } from '../types'
+import { format } from 'date-fns'
+import type { AppUser, Content, ContentStatus } from '../types'
 import { collectionService } from './firestore'
 import { logActivity } from './activityService'
-import { CONTENT_STATUS_LABEL } from '../types/content'
+import { createNotification } from './notificationService'
+import { findUserIdByName } from '../utils/userLookup'
+import { CONTENT_STATUS_LABEL, CONTENT_FORMAT_LABEL, CONTENT_TYPE_LABEL } from '../types/content'
 
 const COLLECTION = 'contents'
 const base = collectionService<Content>(COLLECTION)
@@ -38,12 +41,18 @@ export async function updateContent(id: string, data: Partial<Content>, userId: 
   })
 }
 
+/** `notify`, when given, fires the internal review notifications (6 e 7 do
+ *  sistema de notificações): moving to "Aguardando Cliente" pings Ciane for
+ *  review, moving to "Aprovado" pings Nicolas that it's ready to schedule.
+ *  Optional — callers without the client name / users list handy just skip
+ *  the notification, the status change itself is unaffected. */
 export async function moveContentStatus(
   content: Content,
   newStatus: ContentStatus,
   newOrder: number,
   userId: string,
-  userName: string
+  userName: string,
+  notify?: { clientName: string; users: AppUser[] }
 ) {
   await base.update(content.id, { status: newStatus, order: newOrder }, userId)
   if (newStatus !== content.status) {
@@ -56,6 +65,37 @@ export async function moveContentStatus(
       userId,
       userName,
     })
+
+    if (notify) {
+      const formatLabel = CONTENT_FORMAT_LABEL[content.type] ?? CONTENT_TYPE_LABEL[content.type]
+      const dateLabel = content.scheduledDate ? format(content.scheduledDate.toDate(), 'dd/MM/yyyy') : 'sem data definida'
+
+      if (newStatus === 'waiting_client') {
+        const cianeId = findUserIdByName(notify.users, 'Ciane')
+        if (cianeId && cianeId !== userId) {
+          await createNotification({
+            userId: cianeId,
+            type: 'content_review_requested',
+            message: `🎨 Conteúdo aguardando sua revisão — ${notify.clientName}\n"${content.title}" — ${formatLabel} — ${dateLabel}`,
+            actorName: userName,
+            entityType: 'content',
+            entityId: content.id,
+          })
+        }
+      } else if (newStatus === 'approved') {
+        const nicolasId = findUserIdByName(notify.users, 'Nicolas')
+        if (nicolasId && nicolasId !== userId) {
+          await createNotification({
+            userId: nicolasId,
+            type: 'content_ready_to_schedule',
+            message: `✅ Conteúdo aprovado — ${notify.clientName}\n"${content.title}" está pronto para agendar`,
+            actorName: userName,
+            entityType: 'content',
+            entityId: content.id,
+          })
+        }
+      }
+    }
   }
 }
 

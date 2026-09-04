@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Search, RotateCw } from 'lucide-react'
 import { isPast, isToday } from 'date-fns'
 import { useAllTasks } from '../hooks/useTasks'
@@ -39,8 +39,23 @@ export function TasksPage() {
   const [assigneeFilter, setAssigneeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+
+  // Deep link from a notification (?task=id) — open the drawer once, then
+  // drop the param so the URL stays clean afterwards.
+  useEffect(() => {
+    const id = searchParams.get('task')
+    if (id) {
+      setOpenTaskId(id)
+      setSearchParams((params) => {
+        params.delete('task')
+        return params
+      }, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null
 
