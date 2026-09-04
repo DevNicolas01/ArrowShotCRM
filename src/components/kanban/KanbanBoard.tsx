@@ -22,7 +22,7 @@ export function KanbanBoard<T extends KanbanItemBase, S extends string>({
   renderCard,
   onMove,
 }: {
-  columns: { id: S; label: string; accent?: string }[]
+  columns: { id: S; label: string; accent?: string; accentColor?: string }[]
   items: T[]
   getStatus: (item: T) => S
   renderCard: (item: T) => ReactNode
@@ -63,7 +63,7 @@ export function KanbanBoard<T extends KanbanItemBase, S extends string>({
         {columns.map((col) => {
           const colItems = byColumn(col.id)
           return (
-            <KanbanColumn key={col.id} id={`col:${col.id}`} label={col.label} count={colItems.length} accent={col.accent}>
+            <KanbanColumn key={col.id} id={`col:${col.id}`} label={col.label} count={colItems.length} accent={col.accent} accentColor={col.accentColor}>
               <SortableContext items={colItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col gap-2">
                   {colItems.map((item) => (

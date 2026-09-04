@@ -30,10 +30,12 @@ const mainNav = [
   { to: '/reunioes', label: 'Reuniões', icon: Video },
 ]
 
-const futureNav = [
+// "Leads" tem `to` e por isso renderiza como link ativo, mesmo continuando
+// listado dentro da seção "Em breve" junto dos módulos ainda travados.
+const futureNav: { label: string; icon: typeof Target; to?: string }[] = [
   { label: 'Google Ads', icon: Target },
   { label: 'Meta Ads', icon: Megaphone },
-  { label: 'Leads', icon: UserPlus },
+  { label: 'Leads', icon: UserPlus, to: '/leads' },
   { label: 'Relatórios', icon: BarChart3 },
   { label: 'Financeiro', icon: Wallet },
 ]
@@ -123,18 +125,34 @@ export function Sidebar({
           <div className="mt-2 border-t border-navy-800 px-4 pb-1.5 pt-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-600">Em breve</p>
           </div>
-          <div className="flex flex-col gap-0.5 opacity-50">
-            {futureNav.map(({ label, icon: Icon }) => (
-              <div
-                key={label}
-                title="Módulo em preparação"
-                className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] text-slate-400"
-              >
-                <Icon size={18} />
-                {label}
-                <Lock size={11} className="ml-auto opacity-70" />
-              </div>
-            ))}
+          <div className="flex flex-col gap-0.5">
+            {futureNav.map(({ label, icon: Icon, to }) =>
+              to ? (
+                <NavLink
+                  key={label}
+                  to={to}
+                  onClick={onCloseMobile}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] font-medium transition-all duration-150 ease-in-out ${
+                      isActive ? 'bg-brand-600 text-white' : 'text-slate-400 hover:bg-navy-800 hover:text-white'
+                    }`
+                  }
+                >
+                  <Icon size={18} />
+                  {label}
+                </NavLink>
+              ) : (
+                <div
+                  key={label}
+                  title="Módulo em preparação"
+                  className="flex cursor-not-allowed items-center gap-2.5 rounded-lg px-4 py-2.5 text-[15px] text-slate-400 opacity-50"
+                >
+                  <Icon size={18} />
+                  {label}
+                  <Lock size={11} className="ml-auto opacity-70" />
+                </div>
+              )
+            )}
           </div>
         </nav>
 

@@ -1,0 +1,141 @@
+import { orderBy, Timestamp, type FirestoreError } from 'firebase/firestore'
+import type { AppUser, Lead, LeadContactEntry, LeadInput, LeadStatus } from '../types'
+import { LEAD_STATUS_LABEL } from '../types/lead'
+import { collectionService } from './firestore'
+import { logActivity } from './activityService'
+import { createClient } from './clientService'
+import { createInitialWorkflowTasks } from './clientWorkflowTemplates'
+
+const COLLECTION = 'leads'
+const base = collectionService<Lead>(COLLECTION)
+
+export async function createLead(data: LeadInput, userId: string, userName: string) {
+  const id = await base.create({ ...data, stageChangedAt: Timestamp.now() }, userId)
+  await logActivity({
+    entityType: 'lead',
+    entityId: id,
+    action: 'created',
+    message: `criou o lead "${data.contactName}"`,
+    userId,
+    userName,
+  })
+  return id
+}
+
+export async function updateLead(id: string, data: Partial<LeadInput>, userId: string, userName: string) {
+  await base.update(id, data, userId)
+  await logActivity({
+    entityType: 'lead',
+    entityId: id,
+    action: 'updated',
+    message: 'atualizou o lead',
+    userId,
+    userName,
+  })
+}
+
+export async function moveLeadStatus(lead: Lead, newStatus: LeadStatus, newOrder: number, userId: string, userName: string) {
+  const changed = newStatus !== lead.status
+  await base.update(lead.id, { status: newStatus, order: newOrder, ...(changed ? { stageChangedAt: Timestamp.now() } : {}) }, userId)
+  if (changed) {
+    await logActivity({
+      entityType: 'lead',
+      entityId: lead.id,
+      action: 'status_changed',
+      message: `moveu de "${LEAD_STATUS_LABEL[lead.status]}" para "${LEAD_STATUS_LABEL[newStatus]}"`,
+      userId,
+      userName,
+    })
+  }
+}
+
+export async function deleteLead(lead: Lead, userId: string, userName: string) {
+  await base.remove(lead.id)
+  await logActivity({
+    entityType: 'lead',
+    entityId: lead.id,
+    action: 'deleted',
+    message: `excluiu o lead "${lead.contactName}"`,
+    userId,
+    userName,
+  })
+}
+
+export async function addLeadContact(
+  lead: Lead,
+  entry: Omit<LeadContactEntry, 'id' | 'createdBy' | 'createdAt'>,
+  userId: string,
+  userName: string
+) {
+  const fullEntry: LeadContactEntry = {
+    ...entry,
+    id: crypto.randomUUID(),
+    createdBy: userId,
+    createdAt: Timestamp.now(),
+  }
+  const contactHistory = [...(lead.contactHistory ?? []), fullEntry].sort((a, b) => b.date.toMillis() - a.date.toMillis())
+  await base.update(lead.id, { contactHistory }, userId)
+  await logActivity({
+    entityType: 'lead',
+    entityId: lead.id,
+    action: 'updated',
+    message: 'registrou um contato',
+    userId,
+    userName,
+  })
+}
+
+/** Cria um Client de verdade a partir do lead (mesmo fluxo de onboarding de
+ *  um cadastro manual — createClient já notifica a equipe e
+ *  createInitialWorkflowTasks já cria as tarefas de onboarding), e marca o
+ *  lead como convertido. Chamado a partir da coluna FECHADO. */
+export async function convertLeadToClient(lead: Lead, userId: string, userName: string, users: AppUser[]) {
+  const companyName = lead.companyName?.trim() || lead.contactName
+  const modules = {
+    paidTraffic: !!(lead.services.paidTraffic || lead.services.metaAds || lead.services.googleAds),
+    metaAds: !!lead.services.metaAds,
+    googleAds: !!lead.services.googleAds,
+    socialMedia: !!lead.services.socialMedia,
+  }
+
+  const clientId = await createClient(
+    {
+      companyName,
+      contactName: lead.contactName,
+      whatsapp: lead.whatsapp,
+      email: lead.email,
+      city: lead.cityRegion,
+      status: 'prospect',
+      package: lead.services.socialMediaPackage,
+      monthlyValue: lead.estimatedValue,
+      notes: lead.notes,
+      modules,
+    },
+    userId,
+    userName,
+    users
+  )
+
+  await createInitialWorkflowTasks({ id: clientId, companyName, modules }, userId, userName, users)
+
+  await base.update(lead.id, { convertedClientId: clientId, convertedAt: Timestamp.now() }, userId)
+  await logActivity({
+    entityType: 'lead',
+    entityId: lead.id,
+    clientId,
+    action: 'updated',
+    message: 'converteu o lead em cliente',
+    userId,
+    userName,
+  })
+
+  return clientId
+}
+
+export function getLead(id: string) {
+  return base.getById(id)
+}
+
+export function subscribeLeads(onData: (items: Lead[]) => void, onError?: (err: FirestoreError) => void) {
+  return base.subscribe([orderBy('order', 'asc')], onData, onError)
+}
