@@ -177,6 +177,14 @@ service cloud.firestore {
       allow delete: if isOwnUser(resource.data.userId) || isAdmin();
     }
 
+    // ---------- dailyRoutineProgress (widget "Rotina do dia" — quais itens do
+    // checklist gerado no frontend já foram marcados hoje, {uid}_{yyyy-MM-dd}).
+    // Estritamente pessoal: nunca lido/escrito por outra conta, nem pelo Admin. ----------
+    match /dailyRoutineProgress/{progressId} {
+      allow read, update, delete: if isOwnUser(resource.data.userId);
+      allow create: if isOwnUser(request.resource.data.userId);
+    }
+
     // ---------- teamMembers (Equipe roster: cargo, permissão informativa,
     // rotina — separado de `users`, que controla o acesso real) ----------
     match /teamMembers/{memberId} {

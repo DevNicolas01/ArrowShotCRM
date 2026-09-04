@@ -9,6 +9,7 @@ import { useClients } from '../hooks/useClients'
 import { useAssigneeMap, type Assignee } from '../hooks/useAssignees'
 import { EmptyState } from '../components/ui/EmptyState'
 import { DashboardEmptyState } from '../components/dashboard/DashboardEmptyState'
+import { DailyRoutineWidget } from '../components/dashboard/DailyRoutineWidget'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
@@ -421,6 +422,8 @@ export function DashboardPage() {
         </div>
         <p className="text-[14px] text-slate-400">{todayLabel}</p>
       </div>
+
+      <DailyRoutineWidget />
 
       {allZero && !expanded ? (
         <DashboardEmptyState
