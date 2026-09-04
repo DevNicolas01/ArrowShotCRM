@@ -10,6 +10,7 @@ import { useUsers } from '../hooks/useUsers'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 import { ClientBriefingTab } from '../components/clients/ClientBriefingTab'
 import { ClientCampaignPlanningPanel } from '../components/clients/ClientCampaignPlanningPanel'
+import { ClientSalesFunnelPanel } from '../components/clients/ClientSalesFunnelPanel'
 import { ClientLogoUpload } from '../components/clients/ClientLogoUpload'
 import { DeleteClientModal } from '../components/clients/DeleteClientModal'
 import { Badge } from '../components/ui/Badge'
@@ -138,6 +139,7 @@ export function ClientDetailPage() {
           tabs={[
             { label: 'Briefing', content: <ClientBriefingTab client={client} /> },
             { label: 'Planejamento de Campanha', content: <ClientCampaignPlanningPanel client={client} /> },
+            { label: 'Funil Comercial', content: <ClientSalesFunnelPanel client={client} /> },
             {
               label: 'Tarefas',
               content: (

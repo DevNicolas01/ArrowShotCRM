@@ -2,6 +2,7 @@ import type { Timestamp } from 'firebase/firestore'
 import type { BaseDoc } from './common'
 import type { PaidTrafficBriefing } from './paidTrafficBriefing'
 import type { CampaignPlanning } from './campaignPlanning'
+import type { SalesFunnel } from './salesFunnel'
 
 export type ClientStatus = 'active' | 'paused' | 'churned' | 'prospect'
 
@@ -80,6 +81,9 @@ export interface Client extends BaseDoc {
    *  das contas (site, Meta, Google...) como sua primeira seção (ver
    *  campaignPlanning.ts). */
   campaignPlanning?: CampaignPlanning
+  /** Funil Comercial — captação até fechamento, com métricas financeiras e
+   *  benchmarks de mercado (ver salesFunnel.ts). */
+  salesFunnel?: SalesFunnel
   /** Which services this client has contracted — also drives which onboarding
    *  task templates get created (see clientWorkflowTemplates.ts). */
   modules?: {
