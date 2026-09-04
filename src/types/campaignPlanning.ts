@@ -17,6 +17,12 @@ export interface CampaignPlanningAccess {
   whatsappNumero?: string
 
   linkDrive?: string
+
+  /** Encontrado em Meta Business Suite → Gerenciador de Anúncios → ID da
+   *  conta (aceita com ou sem o prefixo "act_" — o backend normaliza).
+   *  Obrigatório para gerar relatórios automáticos do Meta Ads deste
+   *  cliente (ver módulo de Relatórios). */
+  metaAdsAccountId?: string
 }
 
 export const EMPTY_CAMPAIGN_PLANNING_ACCESS: CampaignPlanningAccess = {}

@@ -286,6 +286,19 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
           <Field label="Link da pasta Drive do cliente">
             <Input value={form.acessos.linkDrive ?? ''} onChange={(e) => setAccess('linkDrive', e.target.value)} />
           </Field>
+
+          <div>
+            <Field label="ID da conta Meta Ads">
+              <Input
+                value={form.acessos.metaAdsAccountId ?? ''}
+                onChange={(e) => setAccess('metaAdsAccountId', e.target.value)}
+                placeholder="Ex: act_123456789"
+              />
+            </Field>
+            <p className="mt-1 text-xs text-slate-400">
+              Encontre em Meta Business Suite → Gerenciador de Anúncios → ID da conta
+            </p>
+          </div>
         </div>
       </div>
 

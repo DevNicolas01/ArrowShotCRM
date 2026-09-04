@@ -30,3 +30,33 @@ export async function getMetaAds(accountId, adSetId) {
   if (!response.ok) throw new Error('Erro ao buscar anúncios')
   return response.json()
 }
+
+/** Insights com controle total dos parâmetros — usado pelo módulo de
+ *  Relatórios (período customizado, nível de detalhe, breakdown por
+ *  plataforma). `timeRange` é um objeto { since, until } ("yyyy-MM-dd"). */
+export async function getMetaInsightsRange(accountId, { timeRange, fields, level, breakdowns, limit } = {}) {
+  const params = new URLSearchParams({ account_id: accountId })
+  if (timeRange) params.set('time_range', JSON.stringify(timeRange))
+  if (fields) params.set('fields', fields)
+  if (level) params.set('level', level)
+  if (breakdowns) params.set('breakdowns', breakdowns)
+  if (limit) params.set('limit', String(limit))
+
+  const response = await fetch(`/api/meta/insights?${params.toString()}`)
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body.error || 'Erro ao buscar dados do Meta')
+  }
+  return response.json()
+}
+
+/** Nome, moeda e saldo da conta de anúncios — usado no campo "Saldo Atual"
+ *  dos relatórios. */
+export async function getMetaAccountInfo(accountId) {
+  const response = await fetch(`/api/meta/account?account_id=${accountId}`)
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body.error || 'Erro ao buscar dados da conta do Meta')
+  }
+  return response.json()
+}

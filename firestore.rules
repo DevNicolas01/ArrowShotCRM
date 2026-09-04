@@ -167,6 +167,14 @@ service cloud.firestore {
       allow delete: if isInternal();
     }
 
+    // ---------- reports (Relatórios semanais/mensais de tráfego) ----------
+    match /reports/{reportId} {
+      allow read: if isInternal();
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isInternal();
+    }
+
     // ---------- leads (Pipeline de novos clientes) ----------
     match /leads/{leadId} {
       allow read: if isInternal();

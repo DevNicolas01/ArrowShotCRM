@@ -10,13 +10,16 @@
 //   time_range  (opcional)    — JSON, ex: {"since":"2024-01-01","until":"2024-01-31"}
 //                               (um dos dois — date_preset ou time_range — é obrigatório)
 //   fields      (opcional)    — lista de métricas separadas por vírgula
+//   level       (opcional)    — "account" (padrão) | "campaign" | "adset" | "ad"
+//   breakdowns  (opcional)    — ex: "publisher_platform" (Facebook vs Instagram)
+//   limit       (opcional)    — máximo de linhas retornadas
 
 const GRAPH_VERSION = 'v19.0'
 const DEFAULT_FIELDS = 'campaign_name,impressions,clicks,spend,cpc,ctr,reach,actions,cost_per_action_type'
 
 export default async function handler(req, res) {
   try {
-    const { account_id, date_preset, time_range, fields } = req.query
+    const { account_id, date_preset, time_range, fields, level, breakdowns, limit } = req.query
 
     if (!account_id) {
       return res.status(400).json({ error: 'Parâmetro obrigatório ausente: account_id' })
@@ -36,6 +39,9 @@ export default async function handler(req, res) {
     })
     if (date_preset) params.set('date_preset', date_preset)
     if (time_range) params.set('time_range', time_range)
+    if (level) params.set('level', level)
+    if (breakdowns) params.set('breakdowns', breakdowns)
+    if (limit) params.set('limit', limit)
 
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/act_${account_id}/insights?${params.toString()}`
     const metaResponse = await fetch(url)
