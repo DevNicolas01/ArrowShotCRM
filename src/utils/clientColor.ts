@@ -12,7 +12,8 @@ const CLIENT_COLOR_PALETTE = [
 ]
 
 /** Deterministic text-color class for a client, so the same client always
- *  reads in the same color across Kanban cards without storing a color field. */
+ *  reads in the same color across the Social Media board cards without
+ *  storing a color field. */
 export function clientHashColor(key: string): string {
   let hash = 0
   for (let i = 0; i < key.length; i++) {

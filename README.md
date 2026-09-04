@@ -7,7 +7,7 @@ CRM interno da Arrow Shot Marketing, focado inicialmente na operação de Social
 - React 19 + Vite + TypeScript
 - Tailwind CSS v4
 - Firebase Authentication, Firestore, Storage
-- react-router-dom, @dnd-kit (Kanban drag-and-drop), date-fns, react-hot-toast, lucide-react
+- react-router-dom, @dnd-kit (drag-and-drop do board de Social Media), date-fns, react-hot-toast, lucide-react
 
 ## Estrutura do projeto
 
@@ -96,7 +96,7 @@ Ou conecte o repositório Git direto no dashboard da Vercel. `vercel.json` já e
 |---|---|
 | `users` | Perfil de cada usuário autenticado (role, nome, avatar) |
 | `clients` | Clientes da agência |
-| `tasks` | Tarefas internas (Kanban geral) |
+| `tasks` | Tarefas internas (lista em /tarefas) |
 | `contents` | Conteúdos de Social Media (Kanban de produção) |
 | `approvals` | Log de aprovações/solicitações de alteração de conteúdo |
 | `comments` | Comentários, genéricos por `entityType` + `entityId` |
