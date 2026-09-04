@@ -97,6 +97,7 @@ function CardTitle({ children }: { children: string }) {
 }
 
 function stageColor(level: BenchmarkLevel): string {
+  if (level === 'green') return '#10B981'
   if (level === 'yellow') return '#F59E0B'
   if (level === 'red') return '#EF4444'
   return '#1E40AF'
@@ -620,7 +621,7 @@ export function ClientSalesFunnelPanel({ client }: { client: Client }) {
 
           <p className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: '#1E40AF' }} /> Dentro do esperado
+              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: '#10B981' }} /> Dentro do esperado
             </span>
             <span className="flex items-center gap-1">
               <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> Abaixo
