@@ -11,6 +11,7 @@ import { TasksPage } from './pages/TasksPage'
 import { SocialMediaPage } from './pages/SocialMediaPage'
 import { CalendarPage } from './pages/CalendarPage'
 import { NotificationsPage } from './pages/NotificationsPage'
+import { MeetingsPage } from './pages/MeetingsPage'
 import { TeamPage } from './pages/TeamPage'
 import { PublicApprovalPage } from './pages/PublicApprovalPage'
 import { UniversityPage } from './pages/UniversityPage'
@@ -40,6 +41,7 @@ function App() {
             <Route path="/tarefas" element={<TasksPage />} />
             <Route path="/social-media" element={<SocialMediaPage />} />
             <Route path="/calendario" element={<CalendarPage />} />
+            <Route path="/reunioes" element={<MeetingsPage />} />
             <Route path="/notificacoes" element={<NotificationsPage />} />
             <Route
               path="/equipe"

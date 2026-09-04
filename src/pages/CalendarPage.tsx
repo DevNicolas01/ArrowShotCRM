@@ -17,19 +17,24 @@ import { ptBR } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Sparkles, CheckSquare, Video, Plus, LogOut, CalendarClock } from 'lucide-react'
 import { useAllContents } from '../hooks/useContents'
 import { useAllTasks } from '../hooks/useTasks'
+import { useAllMeetings } from '../hooks/useMeetings'
 import { useClients } from '../hooks/useClients'
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar'
 import { useCalendarEvents } from '../hooks/useCalendarEvents'
 import { useTaskVisibility, filterVisibleTasks } from '../utils/taskVisibility'
+import { MEETING_TYPE_LABEL } from '../types/meeting'
 import { TaskDrawer } from '../components/tasks/TaskDrawer'
 import { ContentDrawer } from '../components/content/ContentDrawer'
+import { MeetingDrawer } from '../components/meetings/MeetingDrawer'
 import { NewMeetingModal } from '../components/calendar/NewMeetingModal'
 import { Button } from '../components/ui/Button'
 
 type CalItem = {
   id: string
   title: string
-  kind: 'task' | 'content' | 'meeting' | 'event'
+  // 'meeting' = evento do Google Calendar sincronizado; 'internalMeeting' =
+  // registro do módulo de Reuniões da plataforma (ver types/meeting.ts).
+  kind: 'task' | 'content' | 'meeting' | 'internalMeeting' | 'event'
   date: Date
   clientName?: string
   link?: string
@@ -39,6 +44,7 @@ const KIND_STYLE: Record<CalItem['kind'], string> = {
   content: 'bg-brand-50 text-brand-700',
   task: 'bg-blue-50 text-blue-700',
   meeting: 'bg-amber-50 text-amber-700',
+  internalMeeting: 'bg-indigo-50 text-indigo-700',
   event: 'bg-violet-50 text-violet-700',
 }
 
@@ -47,6 +53,7 @@ export function CalendarPage() {
   const { canSeeAllTasks, viewerId } = useTaskVisibility()
   const tasks = useMemo(() => filterVisibleTasks(allTasks, canSeeAllTasks, viewerId), [allTasks, canSeeAllTasks, viewerId])
   const { data: contents } = useAllContents()
+  const { data: meetings } = useAllMeetings()
   const { data: clients } = useClients()
   const { data: calendarEvents } = useCalendarEvents()
   const google = useGoogleCalendar()
@@ -54,10 +61,12 @@ export function CalendarPage() {
   const [cursor, setCursor] = useState(new Date())
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [openContentId, setOpenContentId] = useState<string | null>(null)
+  const [openMeetingId, setOpenMeetingId] = useState<string | null>(null)
   const [creatingMeeting, setCreatingMeeting] = useState(false)
 
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null
   const openContent = contents.find((c) => c.id === openContentId) ?? null
+  const openInternalMeeting = meetings.find((m) => m.id === openMeetingId) ?? null
   const clientMap = Object.fromEntries(clients.map((c) => [c.id, c]))
 
   const items: CalItem[] = useMemo(() => {
@@ -93,8 +102,18 @@ export function CalendarPage() {
       date: ev.date.toDate(),
       clientName: ev.clientId ? clientMap[ev.clientId]?.companyName : undefined,
     }))
-    return [...fromTasks, ...fromContents, ...fromMeetings, ...fromEvents]
-  }, [tasks, contents, clientMap, google.events, calendarEvents])
+    const fromInternalMeetings: CalItem[] = meetings.map((m) => {
+      const clientName = m.clientId ? clientMap[m.clientId]?.companyName : undefined
+      return {
+        id: m.id,
+        title: clientName ? `${MEETING_TYPE_LABEL[m.type]} — ${clientName}` : MEETING_TYPE_LABEL[m.type],
+        kind: 'internalMeeting',
+        date: m.date.toDate(),
+        clientName,
+      }
+    })
+    return [...fromTasks, ...fromContents, ...fromMeetings, ...fromEvents, ...fromInternalMeetings]
+  }, [tasks, contents, clientMap, google.events, calendarEvents, meetings])
 
   const rangeStart = mode === 'month' ? startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 }) : startOfWeek(cursor, { weekStartsOn: 0 })
   const rangeEnd = mode === 'month' ? endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 }) : endOfWeek(cursor, { weekStartsOn: 0 })
@@ -103,6 +122,7 @@ export function CalendarPage() {
   const openItem = (item: CalItem) => {
     if (item.kind === 'task') setOpenTaskId(item.id)
     else if (item.kind === 'content') setOpenContentId(item.id)
+    else if (item.kind === 'internalMeeting') setOpenMeetingId(item.id)
     else if (item.link) window.open(item.link, '_blank', 'noreferrer')
   }
 
@@ -196,6 +216,7 @@ export function CalendarPage() {
                       {item.kind === 'content' && <Sparkles size={10} />}
                       {item.kind === 'task' && <CheckSquare size={10} />}
                       {item.kind === 'meeting' && <Video size={10} />}
+                      {item.kind === 'internalMeeting' && <Video size={10} />}
                       {item.kind === 'event' && <CalendarClock size={10} />}
                       <span className="truncate">{item.title}</span>
                     </button>
@@ -212,6 +233,7 @@ export function CalendarPage() {
 
       <TaskDrawer key={`task-${openTaskId ?? 'none'}`} task={openTask} onClose={() => setOpenTaskId(null)} />
       <ContentDrawer key={`content-${openContentId ?? 'none'}`} content={openContent} onClose={() => setOpenContentId(null)} />
+      <MeetingDrawer key={`meeting-${openMeetingId ?? 'none'}`} meeting={openInternalMeeting} onClose={() => setOpenMeetingId(null)} />
       <NewMeetingModal open={creatingMeeting} onClose={() => setCreatingMeeting(false)} onCreated={google.refresh} />
     </div>
   )

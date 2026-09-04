@@ -18,6 +18,7 @@ export type EntityType =
   | 'client'
   | 'task'
   | 'content'
+  | 'meeting'
   | 'project'
   | 'googleAdsCampaign'
   | 'metaAdsCampaign'

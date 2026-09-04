@@ -5,6 +5,7 @@ import {
   CheckSquare,
   Sparkles,
   CalendarDays,
+  Video,
   Megaphone,
   Target,
   UserPlus,
@@ -26,6 +27,7 @@ const mainNav = [
   { to: '/tarefas', label: 'Tarefas', icon: CheckSquare },
   { to: '/social-media', label: 'Social Media', icon: Sparkles },
   { to: '/calendario', label: 'Calendário', icon: CalendarDays },
+  { to: '/reunioes', label: 'Reuniões', icon: Video },
 ]
 
 const futureNav = [

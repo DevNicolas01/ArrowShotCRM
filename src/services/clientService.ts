@@ -7,6 +7,7 @@ import { createNotification } from './notificationService'
 import { getClientTasks } from './taskService'
 import { getClientContents } from './contentService'
 import { getClientCalendarEvents } from './calendarService'
+import { getClientMeetings } from './meetingService'
 import { getInternalStaffIds } from '../utils/userLookup'
 
 const COLLECTION = 'clients'
@@ -78,16 +79,18 @@ export async function updateClient(
  *  otherwise linger forever (invisible in the UI, but still counted by any
  *  code that queries the collection directly, e.g. dashboard buckets). */
 export async function deleteClient(client: Client, userId: string, userName: string) {
-  const [tasks, contents, calendarEvents] = await Promise.all([
+  const [tasks, contents, calendarEvents, meetings] = await Promise.all([
     getClientTasks(client.id),
     getClientContents(client.id),
     getClientCalendarEvents(client.id),
+    getClientMeetings(client.id),
   ])
 
   const batch = writeBatch(db)
   for (const task of tasks) batch.delete(doc(db, 'tasks', task.id))
   for (const content of contents) batch.delete(doc(db, 'contents', content.id))
   for (const event of calendarEvents) batch.delete(doc(db, 'calendarEvents', event.id))
+  for (const meeting of meetings) batch.delete(doc(db, 'meetings', meeting.id))
   batch.delete(doc(db, 'clients', client.id))
   await batch.commit()
 
@@ -96,7 +99,7 @@ export async function deleteClient(client: Client, userId: string, userName: str
     entityId: client.id,
     clientId: client.id,
     action: 'deleted',
-    message: `excluiu o cliente "${client.companyName}" (${tasks.length} tarefa(s), ${contents.length} conteúdo(s) e ${calendarEvents.length} evento(s) removidos junto)`,
+    message: `excluiu o cliente "${client.companyName}" (${tasks.length} tarefa(s), ${contents.length} conteúdo(s), ${calendarEvents.length} evento(s) e ${meetings.length} reunião(ões) removidos junto)`,
     userId,
     userName,
   })

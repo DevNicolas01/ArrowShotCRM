@@ -26,6 +26,7 @@ import { TaskFormModal } from '../components/tasks/TaskFormModal'
 import { ContentDrawer } from '../components/content/ContentDrawer'
 import { ContentFormModal } from '../components/content/ContentFormModal'
 import { ImportEditorialCalendarModal } from '../components/content/ImportEditorialCalendarModal'
+import { ClientMeetingsTab } from '../components/clients/ClientMeetingsTab'
 import { CLIENT_PACKAGE_LABEL, CLIENT_STATUS_LABEL, STYLE_CATALOG_LABEL, getClientOwnerIds } from '../types/client'
 import { TASK_STATUS_LABEL } from '../types/task'
 import { CONTENT_STATUS_LABEL } from '../types/content'
@@ -215,6 +216,7 @@ export function ClientDetailPage() {
                 />
               ),
             },
+            { label: 'Reuniões', content: <ClientMeetingsTab client={client} /> },
             { label: 'Arquivos', content: <FilesPanel clientId={client.id} category="documents" relatedType="client" relatedId={client.id} /> },
             { label: 'Comentários', content: <CommentsPanel entityType="client" entityId={client.id} clientId={client.id} /> },
             { label: 'Histórico', content: <ActivityPanel entityType="client" entityId={client.id} /> },

@@ -167,6 +167,14 @@ service cloud.firestore {
       allow delete: if isInternal();
     }
 
+    // ---------- meetings (Registro de Reuniões) ----------
+    match /meetings/{meetingId} {
+      allow read: if isInternal();
+      allow create: if isInternal() && createdBySelf() && updatedBySelf();
+      allow update: if isInternal() && updatedBySelf();
+      allow delete: if isInternal();
+    }
+
     // ---------- notifications ----------
     match /notifications/{notificationId} {
       // Admin (Bruno) sees every notification, not just their own — see the
