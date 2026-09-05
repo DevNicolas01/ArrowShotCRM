@@ -216,6 +216,21 @@ service cloud.firestore {
       allow write: if isAdminOrManager();
     }
 
+    // ---------- memberHealth (aba "Informações de Saúde" da Equipe) ----------
+    // Ficha médica confidencial, um doc por teamMembers/{id} (mesmo id).
+    // Leitura E escrita restritas ao Admin (Bruno) — nunca chega a outra conta.
+    match /memberHealth/{memberId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Subconjunto não-confidencial (tipo sanguíneo, alergias, contato de
+    // emergência) espelhado a cada save. Qualquer membro interno pode ler
+    // pelo botão "Ver informações de emergência"; só o Admin escreve.
+    match /memberEmergency/{memberId} {
+      allow read: if isInternal();
+      allow write: if isAdmin();
+    }
+
     // ---------- teams / projects ----------
     match /teams/{teamId} {
       allow read: if isInternal();

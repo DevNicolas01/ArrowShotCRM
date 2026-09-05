@@ -3,6 +3,7 @@ import { Plus, Users2, CalendarClock } from 'lucide-react'
 import { useTeamMembers } from '../hooks/useTeamMembers'
 import { TeamMemberFormModal } from '../components/team/TeamMemberFormModal'
 import { TeamMemberDrawer } from '../components/team/TeamMemberDrawer'
+import { EmergencyInfoModal } from '../components/team/EmergencyInfoModal'
 import { Avatar } from '../components/ui/Avatar'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -20,8 +21,10 @@ export function TeamPage() {
   const [openMemberId, setOpenMemberId] = useState<string | null>(null)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [creating, setCreating] = useState(false)
+  const [emergencyMemberId, setEmergencyMemberId] = useState<string | null>(null)
 
   const openMember = members.find((m) => m.id === openMemberId) ?? null
+  const emergencyMember = members.find((m) => m.id === emergencyMemberId) ?? null
   const activeMembers = members.filter((m) => m.status === 'active')
   const inactiveMembers = members.filter((m) => m.status === 'inactive')
 
@@ -142,12 +145,20 @@ export function TeamPage() {
       </section>
 
       <TeamMemberDrawer
+        key={`member-${openMemberId ?? 'none'}`}
         member={openMember}
         onClose={() => setOpenMemberId(null)}
         onEdit={() => {
           setEditingMember(openMember)
           setOpenMemberId(null)
         }}
+        onOpenEmergency={() => setEmergencyMemberId(openMemberId)}
+      />
+      <EmergencyInfoModal
+        open={!!emergencyMember}
+        onClose={() => setEmergencyMemberId(null)}
+        memberId={emergencyMemberId}
+        memberName={emergencyMember?.name ?? ''}
       />
       <TeamMemberFormModal open={creating} onClose={() => setCreating(false)} nextOrder={members.length} />
       <TeamMemberFormModal
