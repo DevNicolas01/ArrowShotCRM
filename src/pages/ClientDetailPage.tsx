@@ -147,7 +147,7 @@ export function ClientDetailPage() {
               label: 'Tarefas',
               content: (
                 <div className="flex flex-col gap-2">
-                  <Button size="sm" icon={<Plus size={13} />} onClick={() => setCreatingTask(true)} className="self-start">
+                  <Button size="sm" icon={<Plus size={13} />} onClick={() => setCreatingTask(true)} className="self-end">
                     Nova tarefa
                   </Button>
                   {tasks.length === 0 ? (

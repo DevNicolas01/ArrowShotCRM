@@ -1,10 +1,8 @@
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Plus, LogOut, Search, Camera, Menu } from 'lucide-react'
+import { LogOut, Search, Camera, Menu } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { Avatar } from '../ui/Avatar'
-import { Button } from '../ui/Button'
-import { TaskFormModal } from '../tasks/TaskFormModal'
 import { NotificationBell } from './NotificationBell'
 import { compressImageToDataUrl } from '../../utils/imageToDataUrl'
 import { updateUserPhoto } from '../../services/userService'
@@ -19,7 +17,6 @@ export function Topbar({
   onOpenMobileNav?: () => void
 }) {
   const { profile, signOut } = useAuth()
-  const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
@@ -63,14 +60,6 @@ export function Topbar({
       )}
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-        <Button
-          style={{ height: '40px', borderRadius: '10px', fontWeight: 600, fontSize: '15px', padding: '0 20px' }}
-          icon={<Plus size={14} />}
-          onClick={() => setQuickAddOpen(true)}
-        >
-          <span className="hidden sm:inline">Nova tarefa</span>
-        </Button>
-
         <NotificationBell />
 
         <div className="relative">
@@ -113,8 +102,6 @@ export function Topbar({
           )}
         </div>
       </div>
-
-      <TaskFormModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
     </header>
   )
 }
