@@ -15,7 +15,6 @@ type HealthPlanChoice = '' | 'yes' | 'no'
 const EMPTY = {
   bloodType: '' as BloodType | '',
   allergies: '',
-  medicationAllergies: '',
   healthConditions: '',
   continuousMedications: '',
   emergencyContactName: '',
@@ -33,7 +32,6 @@ function fromRecord(h: MemberHealth | null): typeof EMPTY {
   return {
     bloodType: h.bloodType ?? '',
     allergies: h.allergies ?? '',
-    medicationAllergies: h.medicationAllergies ?? '',
     healthConditions: h.healthConditions ?? '',
     continuousMedications: h.continuousMedications ?? '',
     emergencyContactName: h.emergencyContactName ?? '',
@@ -84,7 +82,6 @@ export function MemberHealthTab({ memberId }: { memberId: string }) {
       const payload: MemberHealth = {
         bloodType: form.bloodType || undefined,
         allergies: trimmed(form.allergies),
-        medicationAllergies: trimmed(form.medicationAllergies),
         healthConditions: trimmed(form.healthConditions),
         continuousMedications: trimmed(form.continuousMedications),
         emergencyContactName: trimmed(form.emergencyContactName),
@@ -129,13 +126,6 @@ export function MemberHealthTab({ memberId }: { memberId: string }) {
         </Field>
         <Field label="Alergias (listar todas)">
           <Textarea rows={2} value={form.allergies} onChange={(e) => set('allergies', e.target.value)} />
-        </Field>
-        <Field label="Alergias a medicamentos">
-          <Textarea
-            rows={2}
-            value={form.medicationAllergies}
-            onChange={(e) => set('medicationAllergies', e.target.value)}
-          />
         </Field>
         <Field label="Condições de saúde relevantes (ex: diabetes, hipertensão, epilepsia)">
           <Textarea

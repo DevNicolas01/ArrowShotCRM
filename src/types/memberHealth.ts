@@ -13,7 +13,6 @@ export interface MemberHealth {
   // Informações básicas de saúde
   bloodType?: BloodType
   allergies?: string
-  medicationAllergies?: string
   healthConditions?: string
   continuousMedications?: string
   // Em caso de emergência
