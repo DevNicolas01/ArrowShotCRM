@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Timestamp } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/Field'
@@ -8,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useAssignees } from '../../hooks/useAssignees'
 import { createTask } from '../../services/taskService'
+import { dateInputToTimestamp } from '../../utils/dateInput'
 import { TASK_PRIORITY_LABEL, type TaskPriority } from '../../types/task'
 
 export function TaskFormModal({
@@ -52,7 +52,7 @@ export function TaskFormModal({
           description: description.trim() || undefined,
           clientId: clientId || undefined,
           assignedTo: assignedTo || undefined,
-          dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate)) : null,
+          dueDate: dateInputToTimestamp(dueDate),
           priority,
           status: defaultStatus ?? 'todo',
           checklist: [],

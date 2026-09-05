@@ -9,6 +9,7 @@ import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 import { updateClient } from '../../services/clientService'
 import { maskPhone } from '../../utils/masks'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   EMPTY_CAMPAIGN_PLANNING,
   EMPTY_CAMPAIGN_PLANNING_ACCESS,
@@ -36,10 +37,7 @@ function toNumberOrUndefined(v: string) {
   return v === '' ? undefined : Number(v)
 }
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 function formatBRL(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -406,7 +404,7 @@ export function ClientCampaignPlanningPanel({ client }: { client: Client }) {
                       type="date"
                       value={toDateInputValue(c.dataCriacao)}
                       onChange={(e) =>
-                        updateMetaCampaign(c.id, { dataCriacao: e.target.value ? Timestamp.fromDate(new Date(e.target.value)) : null })
+                        updateMetaCampaign(c.id, { dataCriacao: dateInputToTimestamp(e.target.value) })
                       }
                     />
                   </Field>

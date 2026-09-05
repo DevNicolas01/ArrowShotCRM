@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Timestamp } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/Field'
@@ -8,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { createContent } from '../../services/contentService'
+import { dateInputToTimestamp } from '../../utils/dateInput'
 import {
   CONTENT_PILLAR_LABEL,
   CONTENT_FORMAT_LABEL,
@@ -68,7 +68,7 @@ export function ContentFormModal({
           type,
           platform: 'instagram',
           pillar: pillar || undefined,
-          scheduledDate: scheduledDate ? Timestamp.fromDate(new Date(scheduledDate)) : null,
+          scheduledDate: dateInputToTimestamp(scheduledDate),
           assignedTo: assignedTo || undefined,
           canvaLink: canvaLink.trim() || undefined,
           caption: caption.trim() || undefined,

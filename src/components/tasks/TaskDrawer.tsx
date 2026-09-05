@@ -16,6 +16,7 @@ import { useUsers } from '../../hooks/useUsers'
 import { useAssignees } from '../../hooks/useAssignees'
 import { updateTask, deleteTask, duplicateRecurringTask, notifyTaskCompleted } from '../../services/taskService'
 import { advanceClientWorkflow, scheduleBriefingMeeting } from '../../services/clientWorkflowTemplates'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -26,10 +27,7 @@ import {
   type Task,
 } from '../../types/task'
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () => void }) {
   const { profile } = useAuth()
@@ -159,7 +157,7 @@ export function TaskDrawer({ task, onClose }: { task: Task | null; onClose: () =
             <Input
               type="date"
               value={toDateInputValue(task.dueDate)}
-              onChange={(e) => save({ dueDate: e.target.value ? Timestamp.fromDate(new Date(e.target.value)) : null })}
+              onChange={(e) => save({ dueDate: dateInputToTimestamp(e.target.value) })}
             />
           </Field>
         </div>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Timestamp } from 'firebase/firestore'
 import { Modal } from '../ui/Modal'
 import { Field, Input, Select, Textarea } from '../ui/Field'
 import { Button } from '../ui/Button'
@@ -9,6 +8,7 @@ import { useUsers } from '../../hooks/useUsers'
 import { createClient, updateClient } from '../../services/clientService'
 import { createInitialWorkflowTasks } from '../../services/clientWorkflowTemplates'
 import { maskPhone, isPhoneComplete, maskDocument, maskCurrencyInput, parseCurrencyToNumber } from '../../utils/masks'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   CLIENT_PACKAGE_LABEL,
   STYLE_CATALOG_DESCRIPTION,
@@ -37,10 +37,7 @@ const EMPTY = {
   googleAds: false,
 }
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 export function ClientFormModal({
   open,
@@ -116,7 +113,7 @@ export function ClientFormModal({
         styleCatalog: form.socialMedia ? form.styleCatalog || undefined : undefined,
         ownerIds: form.ownerIds.length > 0 ? form.ownerIds : undefined,
         monthlyValue: parseCurrencyToNumber(form.monthlyValue),
-        contractStartDate: form.contractStartDate ? Timestamp.fromDate(new Date(form.contractStartDate)) : null,
+        contractStartDate: dateInputToTimestamp(form.contractStartDate),
         notes: form.notes || undefined,
         modules: {
           ...client?.modules,

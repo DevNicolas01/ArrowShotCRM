@@ -9,6 +9,7 @@ import { Button } from '../ui/Button'
 import { useAuth } from '../../context/AuthContext'
 import { updateClient } from '../../services/clientService'
 import { markBriefingChecklistDone } from '../../services/taskService'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   APPROVAL_CHANNEL_LABEL,
   CLIENT_AUDIENCE_LABEL,
@@ -19,10 +20,7 @@ import {
 
 const EMPTY: ClientBriefing = { preenchidoPor: 'Jamilson' }
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 function SectionTitle({ children }: { children: string }) {
   return <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{children}</p>
@@ -182,7 +180,7 @@ export function ClientBriefingPanel({ client }: { client: Client }) {
             <Input
               type="date"
               value={toDateInputValue(form.dataInicio)}
-              onChange={(e) => set('dataInicio', e.target.value ? Timestamp.fromDate(new Date(e.target.value)) : null)}
+              onChange={(e) => set('dataInicio', dateInputToTimestamp(e.target.value))}
             />
           </Field>
           <Field label="Canal de aprovação">

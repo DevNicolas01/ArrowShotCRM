@@ -11,6 +11,7 @@ import { useUsers } from '../../hooks/useUsers'
 import { updateClient } from '../../services/clientService'
 import { markBriefingChecklistDone } from '../../services/taskService'
 import { notifyBriefingFilled } from '../../services/clientWorkflowTemplates'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   EMPTY_PAID_TRAFFIC_BRIEFING,
   CREDIT_CARD_FOR_ADS_LABEL,
@@ -20,10 +21,7 @@ import {
   type CreditCardForAds,
 } from '../../types'
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 function toNumberOrUndefined(v: string) {
   return v === '' ? undefined : Number(v)
@@ -63,7 +61,7 @@ function ContactListField({
               <Input
                 type="date"
                 value={toDateInputValue(c.birthday)}
-                onChange={(e) => update(c.id, { birthday: e.target.value ? Timestamp.fromDate(new Date(e.target.value)) : null })}
+                onChange={(e) => update(c.id, { birthday: dateInputToTimestamp(e.target.value) })}
               />
             </Field>
             {i > 0 && (

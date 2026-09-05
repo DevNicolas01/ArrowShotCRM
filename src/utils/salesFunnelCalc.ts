@@ -116,13 +116,14 @@ export function getBenchmarkLevel(value: number | undefined, threshold: number |
 }
 
 /** Percentual de `numerator` sobre `denominator`, ou `undefined` quando não
- *  dá para calcular (denominador vazio/zero) — o painel mostra "—" nesse caso. */
+ *  dá para calcular (denominador ausente/zero) — o painel mostra "—" nesse
+ *  caso. Numerador zero é um resultado válido (0%), não "sem dados". */
 export function percentOf(numerator?: number, denominator?: number): number | undefined {
-  if (!numerator || !denominator) return undefined
+  if (numerator == null || !denominator) return undefined
   return (numerator / denominator) * 100
 }
 
 export function divide(numerator?: number, denominator?: number): number | undefined {
-  if (!numerator || !denominator) return undefined
+  if (numerator == null || !denominator) return undefined
   return numerator / denominator
 }

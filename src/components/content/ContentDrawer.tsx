@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Timestamp } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import { Trash2, ThumbsUp, RotateCcw, Link2, Copy, XCircle } from 'lucide-react'
 import { Drawer } from '../ui/Drawer'
@@ -14,6 +13,7 @@ import { useClients } from '../../hooks/useClients'
 import { useUsers } from '../../hooks/useUsers'
 import { updateContent, deleteContent } from '../../services/contentService'
 import { approveContent, requestContentChange, generateApprovalLink, revokeApprovalLink } from '../../services/approvalService'
+import { dateInputToTimestamp, timestampToDateInput } from '../../utils/dateInput'
 import {
   CONTENT_PILLAR_LABEL,
   CONTENT_PLATFORM_LABEL,
@@ -23,10 +23,7 @@ import {
   type Content,
 } from '../../types/content'
 
-function toDateInputValue(ts?: Timestamp | null) {
-  if (!ts) return ''
-  return ts.toDate().toISOString().slice(0, 10)
-}
+const toDateInputValue = timestampToDateInput
 
 export function ContentDrawer({ content, onClose }: { content: Content | null; onClose: () => void }) {
   const { profile } = useAuth()
@@ -181,7 +178,7 @@ export function ContentDrawer({ content, onClose }: { content: Content | null; o
               type="date"
               value={toDateInputValue(content.scheduledDate)}
               onChange={(e) =>
-                save({ scheduledDate: e.target.value ? Timestamp.fromDate(new Date(e.target.value)) : null })
+                save({ scheduledDate: dateInputToTimestamp(e.target.value) })
               }
             />
           </Field>
