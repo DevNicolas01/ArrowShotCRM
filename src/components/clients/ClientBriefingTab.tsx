@@ -16,7 +16,7 @@ export function ClientBriefingTab({ client }: { client: Client }) {
       <Tabs
         tabs={[
           { label: 'Tráfego Pago', content: <ClientPaidTrafficBriefingPanel client={client} /> },
-          { label: 'Social Media', content: <ClientBriefingPanel client={client} /> },
+          { label: 'Social Mídia', content: <ClientBriefingPanel client={client} /> },
         ]}
       />
     )
@@ -28,7 +28,7 @@ export function ClientBriefingTab({ client }: { client: Client }) {
   return (
     <EmptyState
       title="Nenhum serviço contratado"
-      description='Marque "Tráfego Pago" e/ou "Social Media" em Serviços contratados, na edição do cliente, para habilitar o briefing correspondente.'
+      description='Marque "Tráfego Pago" e/ou "Social Mídia" em Serviços contratados, na edição do cliente, para habilitar o briefing correspondente.'
     />
   )
 }

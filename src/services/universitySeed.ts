@@ -38,8 +38,8 @@ const TRAILS: { title: string; description: string; modules: string[] }[] = [
     modules: ['Sobre a Agência', 'Ferramentas e Sistemas', 'Comunicação Interna', 'Cultura e Padrões'],
   },
   {
-    title: 'Social Media',
-    description: 'Processos do serviço de Social Media, da produção à entrega ao cliente.',
+    title: 'Social Mídia',
+    description: 'Processos do serviço de Social Mídia, da produção à entrega ao cliente.',
     modules: [
       'Visão Geral do Serviço',
       'Identidade Visual e Catálogos',

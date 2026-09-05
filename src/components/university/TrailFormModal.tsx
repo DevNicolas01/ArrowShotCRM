@@ -58,7 +58,7 @@ export function TrailFormModal({
     <Modal open={open} onClose={onClose} title={trail ? 'Editar trilha' : 'Nova trilha'}>
       <div className="flex flex-col gap-3">
         <Field label="Título" required>
-          <Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Social Media" />
+          <Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Social Mídia" />
         </Field>
         <Field label="Descrição">
           <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />

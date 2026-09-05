@@ -61,14 +61,14 @@ function clientServiceLabel(client: Client) {
   const social = client.modules?.socialMedia
   if (traffic && social) return 'Ambos'
   if (traffic) return 'Tráfego'
-  if (social) return 'Social Media'
+  if (social) return 'Social Mídia'
   return '—'
 }
 
 function ServicePill({ service }: { service: string }) {
   if (service === 'Tráfego') return <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">Tráfego</span>
-  if (service === 'Social Media')
-    return <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700">Social Media</span>
+  if (service === 'Social Mídia')
+    return <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-medium text-violet-700">Social Mídia</span>
   if (service === 'Ambos')
     return (
       <span className="rounded-full bg-gradient-to-r from-blue-100 to-violet-100 px-2.5 py-1 text-xs font-medium text-blue-700">

@@ -211,8 +211,8 @@ const STEP_DEFS: Record<WorkflowStepKey, StepDef> = {
     recurrence: { frequency: 'monthly', dayOfMonth: 1 },
   },
   sm_ativacao: {
-    title: (name) => `Ativação de Social Media — ${name}`,
-    description: 'Checklist padrão de ativação de cliente novo (playbook de Social Media).',
+    title: (name) => `Ativação de Social Mídia — ${name}`,
+    description: 'Checklist padrão de ativação de cliente novo (playbook de Social Mídia).',
     checklist: ATIVACAO_SOCIAL_MEDIA_ITEMS,
     priority: 'high',
     assignee: 'creator',

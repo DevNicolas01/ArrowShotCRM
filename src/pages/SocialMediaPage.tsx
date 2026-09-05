@@ -77,7 +77,7 @@ export function SocialMediaPage() {
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[28px] font-extrabold text-slate-900">Social Media</h1>
+          <h1 className="text-[28px] font-extrabold text-slate-900">Social Mídia</h1>
           <p className="text-[15px] text-[#64748B]">Fluxo de produção de conteúdo, da ideia à publicação.</p>
         </div>
         <div className="flex items-center gap-2">

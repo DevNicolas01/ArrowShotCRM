@@ -84,7 +84,7 @@ export function LeadForm({
               onChange={(e) => set('socialMedia', e.target.checked)}
               className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
             />
-            Social Media
+            Social Mídia
           </label>
           {value.socialMedia && (
             <div className="ml-5">

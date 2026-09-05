@@ -52,7 +52,7 @@ const CIANE_MONDAY: RoutineItem[] = [
 ]
 const CIANE_FRIDAY: RoutineItem[] = [
   { id: 'ciane-review-week-pending', text: 'Revisar pendências da semana' },
-  { id: 'ciane-check-waiting-approval', text: 'Verificar conteúdos aguardando aprovação de clientes de Social Media' },
+  { id: 'ciane-check-waiting-approval', text: 'Verificar conteúdos aguardando aprovação de clientes de Social Mídia' },
 ]
 
 const NICOLAS_DAILY: RoutineItem[] = [

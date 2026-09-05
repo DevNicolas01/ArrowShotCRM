@@ -7,7 +7,7 @@ import { LEAD_SOURCE_LABEL, type AppUser, type Lead } from '../../types'
 function leadServiceLabel(lead: Lead): string {
   const parts: string[] = []
   if (lead.services.paidTraffic) parts.push('Tráfego Pago')
-  if (lead.services.socialMedia) parts.push('Social Media')
+  if (lead.services.socialMedia) parts.push('Social Mídia')
   return parts.length > 0 ? parts.join(' + ') : '—'
 }
 

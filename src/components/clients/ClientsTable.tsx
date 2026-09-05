@@ -23,7 +23,7 @@ function ServiceBadge({ client }: { client: Client }) {
     )
   }
   if (paidTraffic) return <Badge className="bg-blue-100 text-blue-700">Tráfego</Badge>
-  if (socialMedia) return <Badge className="bg-violet-100 text-violet-700">Social Media</Badge>
+  if (socialMedia) return <Badge className="bg-violet-100 text-violet-700">Social Mídia</Badge>
   return <span className="text-xs text-slate-400">—</span>
 }
 

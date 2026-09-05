@@ -95,7 +95,7 @@ export function ClientFormModal({
 
   const autoTaskSummary = [
     form.paidTraffic && 'Tráfego Pago: cria "Onboarding" — as próximas etapas aparecem sozinhas conforme cada uma for concluída',
-    form.socialMedia && 'Social Media: cria "Ativação de Social Media" — as próximas etapas aparecem sozinhas conforme cada uma for concluída',
+    form.socialMedia && 'Social Mídia: cria "Ativação de Social Mídia" — as próximas etapas aparecem sozinhas conforme cada uma for concluída',
   ]
     .filter(Boolean)
     .join('; ')
@@ -218,7 +218,7 @@ export function ClientFormModal({
               onChange={(e) => set('socialMedia', e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-400"
             />
-            Social Media
+            Social Mídia
           </label>
           {form.socialMedia && (
             <div className="ml-6 flex flex-col gap-2.5">
